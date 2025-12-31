@@ -1,0 +1,41 @@
+version: "3.9"
+
+volumes:
+  safecube-postgres-data:
+
+networks:
+  safecube-net:
+    driver: bridge
+
+services:
+  safecube:
+    container_name: safecube-app
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+
+      DB_USER: safecube-user
+      DB_PWD: Safecube1234
+      DB_URL: jdbc:postgresql://postgres:5432/safecube
+      DB_DATABASE: safecube
+    working_dir: /app
+    depends_on:
+      - postgres
+    networks:
+      - safecube-net
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: safecube-db-postgres
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: safecube
+      POSTGRES_USER: safecube-user
+      POSTGRES_PASSWORD: Safecube1234
+    volumes:
+      - safecube-postgres-data:/var/lib/postgresql/data
+    networks:
+      - safecube-net
