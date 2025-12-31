@@ -1,1 +1,0 @@
-# safecube-backend

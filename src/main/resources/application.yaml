@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /safecube
+
+spring:
+  application:
+    name: SafeCube Backend
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    name: ${DB_DATABASE:safecube}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PWD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 5000
+      idle-timeout: 30000
+      max-lifetime: 60000
