@@ -8,7 +8,7 @@ import java.util.*;
 
 public final class FolderTreeToFile {
 
-    private static String ROOT_DIR;
+    private static File ROOT_DIR;
     private static final String OUTPUT_PATH = "docs/package-structure.txt";
     private static final boolean PRINT_FILES_FLAG = true;
 
