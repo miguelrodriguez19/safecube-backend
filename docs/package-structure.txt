@@ -40,7 +40,6 @@ safecube-backend/
 │                   └── safecube/
 │                       ├── SafeCubeBackendApplicationTests.java
 │                       └── TestcontainersConfiguration.java
-├── .env
 ├── .gitattributes
 ├── .gitignore
 ├── docker-compose.yml

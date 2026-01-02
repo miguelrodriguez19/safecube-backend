@@ -12,7 +12,7 @@ JAVA_PACKAGE="com.safecube.tooling"
 JAVA_CLASS="FolderTreeToFile"
 JAVA_FILE="${RESOURCES_DIR}/com/safecube/tooling/${JAVA_CLASS}.java"
 
-OUTPUT_TARGET="/docs/package-structure.txt"
+OUTPUT_TARGET="docs/package-structure.txt"
 
 command -v java >/dev/null 2>&1 || {
   echo "java not found (JDK 21+ required)" >&2
@@ -31,5 +31,4 @@ mkdir -p "${BUILD_DIR}"
 javac -d "${BUILD_DIR}" "${JAVA_FILE}"
 
 # Run
-java -cp "${BUILD_DIR}" "${JAVA_PACKAGE}.${JAVA_CLASS}" "${PROJECT_ROOT}" "${OUTPUT_TARGET}" "true" "false"
-
+java -cp "${BUILD_DIR}" "${JAVA_PACKAGE}.${JAVA_CLASS}" "${PROJECT_ROOT}" "${OUTPUT_TARGET}"

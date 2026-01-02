@@ -1,119 +1,172 @@
 package com.safecube.tooling;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 
 /**
  * Command line usage: <br>
- * <code>
- * FolderTreeToFile "absolute-root-path" "relative-output-path" "print-files-flag:true" "print-excluded-files-flag:false" "print-excluded-folders-flag:false"
- * </code>
+ *
+ * FolderTreeToFile [rootDir] [outputPath]
+ *   [printFiles=true]
+ *   [printExcludedFiles=false]
+ *   [printExcludedFolders=false]
  */
 public final class FolderTreeToFile {
 
-  private static boolean PRINT_FILES_FLAG = true;
-  private static boolean PRINT_EXCLUDED_FILES_FLAG = false;
-  private static boolean PRINT_EXCLUDED_FOLDERS_FLAG = false;
+  // Defaults
+  private static boolean printFiles = true;
+  private static boolean printExcludedFiles = false;
+  private static boolean printExcludedFolders = false;
 
-  private static File ROOT_DIR;
-  private static String OUTPUT_TARGET;
+  private static File rootDir;
+  private static File outputFile;
 
-  private static final Set<String> EXCLUDED_FOLDERS = Set.of(".git", ".idea", "target", ".build");
-  private static final Set<String> EXCLUDED_FILES = Set.of(".env");
+  private static final Set<String> EXCLUDED_FOLDERS =
+          Set.of(".git", ".idea", "target", ".build");
+
+  private static final Set<String> EXCLUDED_FILES =
+          Set.of(".env");
 
   private FolderTreeToFile() {
     // utility class
   }
 
-  private static void assignLineArgs(String[] args) {
-    ROOT_DIR = new File(args[0]).getAbsoluteFile();
-    OUTPUT_TARGET = args[1];
-    try {
-      PRINT_FILES_FLAG = Boolean.parseBoolean(args[2]);
-      PRINT_EXCLUDED_FILES_FLAG = Boolean.parseBoolean(args[3]);
-      PRINT_EXCLUDED_FOLDERS_FLAG = Boolean.parseBoolean(args[4]);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      System.out.printf("WARN :: Only %d arguments found; 5 expected%n", args.length);
+  public static void main(String[] args) {
+    parseArgs(args);
+    validateRootDir();
+    writeTree();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Argument parsing
+  // ---------------------------------------------------------------------------
+
+  private static void parseArgs(String[] args) {
+    if (args.length < 2) {
+      exitWithUsage("ERR :: Missing required arguments");
+    }
+
+    rootDir = new File(args[0]).getAbsoluteFile();
+    outputFile = resolveOutputFile(args[1]);
+
+    if (args.length > 2) printFiles = Boolean.parseBoolean(args[2]);
+    if (args.length > 3) printExcludedFiles = Boolean.parseBoolean(args[3]);
+    if (args.length > 4) printExcludedFolders = Boolean.parseBoolean(args[4]);
+
+    if (args.length > 5) {
+      System.err.printf(
+              "WARN :: %d arguments provided; only 5 are used%n", args.length);
     }
   }
 
-  public static void main(String[] args) {
-    if (args.length < 2) {
-      System.err.println(
-          "ERR :: Usage: FolderTreeToFile <absolute-root-path> <relative-output-path> <print-files-flag:true> <print-excluded-files-flag:false> <print-excluded-folders-flag:false>");
-      System.exit(1);
-    }
-    assignLineArgs(args);
+  private static File resolveOutputFile(String path) {
+    File file = new File(path);
+    return file.isAbsolute() ? file : new File(rootDir, path);
+  }
 
-    File outputFile = new File(ROOT_DIR, OUTPUT_TARGET);
+  private static void exitWithUsage(String message) {
+    System.err.println(message);
+    System.err.println(
+            "Usage:\n" +
+                    "  FolderTreeToFile <rootDir> <outputPath> [printFiles=true] " +
+                    "[printExcludedFiles=false] [printExcludedFolders=false]"
+    );
+    System.exit(1);
+  }
 
-    if (!ROOT_DIR.exists() || !ROOT_DIR.isDirectory()) {
-      System.err.println("Invalid root directory: " + ROOT_DIR.getAbsolutePath());
+  // ---------------------------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------------------------
+
+  private static void validateRootDir() {
+    if (!rootDir.exists() || !rootDir.isDirectory()) {
+      System.err.println("ERR :: Invalid root directory: " + rootDir);
       System.exit(2);
     }
+  }
 
+  // ---------------------------------------------------------------------------
+  // Execution
+  // ---------------------------------------------------------------------------
+
+  private static void writeTree() {
     outputFile.getParentFile().mkdirs();
 
     try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
-      writer.println(ROOT_DIR.getName() + "/");
-      printFolderTree(ROOT_DIR, "", writer);
+      writer.println(rootDir.getName() + "/");
+      printFolderTree(rootDir, "", writer);
       System.out.println("Folder tree written to: " + outputFile.getAbsolutePath());
     } catch (IOException e) {
-      System.err.println("Failed to write output file: " + e.getMessage());
+      System.err.println("ERR :: Failed to write output file: " + e.getMessage());
       System.exit(3);
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Tree printing
+  // ---------------------------------------------------------------------------
+
   private static void printFolderTree(File folder, String prefix, PrintWriter writer) {
     File[] items = folder.listFiles();
-    if (items == null) {
-      return;
-    }
+    if (items == null) return;
 
-    Arrays.sort(
-        items,
-        (a, b) -> {
-          if (a.isDirectory() && !b.isDirectory()) return -1;
-          if (!a.isDirectory() && b.isDirectory()) return 1;
-          return a.getName().compareToIgnoreCase(b.getName());
-        });
+    Arrays.sort(items, FolderTreeToFile::compareFiles);
 
-    List<File> visible = new ArrayList<>();
-    for (File item : items) {
-      if (item.isDirectory() || PRINT_FILES_FLAG) {
-        visible.add(item);
-      }
-    }
+    List<File> visibleItems = filterVisible(items);
 
-    for (int i = 0; i < visible.size(); i++) {
-      File item = visible.get(i);
-      boolean isLast = (i == visible.size() - 1);
+    for (int i = 0; i < visibleItems.size(); i++) {
+      File item = visibleItems.get(i);
+      boolean isLast = i == visibleItems.size() - 1;
 
       writer.print(prefix);
       String levelIndicator = isLast ? "└── " : "├── ";
 
       if (item.isDirectory()) {
-        if (EXCLUDED_FOLDERS.contains(item.getName())) {
-          if (PRINT_EXCLUDED_FOLDERS_FLAG) {
-            writer.println(levelIndicator + item.getName() + "/ # Skipped Content");
-          }
-        } else {
-          writer.println(levelIndicator + item.getName() + "/");
-          String newPrefix = prefix + (isLast ? "    " : "│   ");
-          printFolderTree(item, newPrefix, writer);
-        }
+        handleDirectory(item, prefix, writer, isLast, levelIndicator);
       } else {
-        if (EXCLUDED_FILES.contains(item.getName())) {
-            if (PRINT_EXCLUDED_FILES_FLAG) {
-                writer.println(levelIndicator + item.getName());
-            }
-        } else {
-          writer.println(levelIndicator + item.getName());
-        }
+        handleFile(item, writer, levelIndicator);
       }
+    }
+  }
+
+  private static int compareFiles(File a, File b) {
+    if (a.isDirectory() && !b.isDirectory()) return -1;
+    if (!a.isDirectory() && b.isDirectory()) return 1;
+    return a.getName().compareToIgnoreCase(b.getName());
+  }
+
+  private static List<File> filterVisible(File[] items) {
+    List<File> visible = new ArrayList<>();
+    for (File item : items) {
+      if (item.isDirectory() || printFiles) {
+        visible.add(item);
+      }
+    }
+    return visible;
+  }
+
+  private static void handleDirectory(
+          File dir, String prefix, PrintWriter writer, boolean isLast, String levelIndicator) {
+
+    if (EXCLUDED_FOLDERS.contains(dir.getName())) {
+      if (printExcludedFolders) {
+        writer.println(levelIndicator + dir.getName() + "/ # Skipped Content");
+      }
+      return;
+    }
+
+    writer.println(levelIndicator + dir.getName() + "/");
+    String newPrefix = prefix + (isLast ? "    " : "│   ");
+    printFolderTree(dir, newPrefix, writer);
+  }
+
+  private static void handleFile(File file, PrintWriter writer, String levelIndicator) {
+    if (EXCLUDED_FILES.contains(file.getName())) {
+      if (printExcludedFiles) {
+        writer.println(levelIndicator + file.getName());
+      }
+    } else {
+      writer.println(levelIndicator + file.getName());
     }
   }
 }
