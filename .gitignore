@@ -35,6 +35,7 @@ bin/
 build/
 /bin1/
 java/build/**
+scripts/.build/**
 
 # Log file
 *.log

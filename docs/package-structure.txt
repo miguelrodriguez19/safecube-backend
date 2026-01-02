@@ -1,57 +1,49 @@
 safecube-backend/
-+-- .git/ # Skipped Content
-+-- .idea/ # Skipped Content
-+-- docs/
-|   +-- glossary/
-|   |   \-- ubiquitous_glossary.md
-|   +-- manifest/
-|   |   \-- safe_cube_backend_manifiesto_v_1.md
-|   +-- use-cases/
-|   |   +-- auth/
-|   |   |   +-- auth_tokens_session_strategy_safe_cube_backend_v_1.md
-|   |   |   \-- auth_use_cases_safe_cube_backend_v_1.md
-|   |   +-- user/
-|   |   |   \-- user_use_cases_safe_cube_backend_v_1.md
-|   |   \-- vault/
-|   |       +-- vault_crypto_strategy_v_1.md
-|   |       \-- vault_use_cases_safe_cube_backend_v_1.md
-|   +-- package-structure.txt
-|   \-- README.md
-+-- scripts/
-|   +-- .build/
-|   |   \-- com/
-|   |       \-- safecube/
-|   |           \-- tooling/
-|   |               \-- FolderTreeToFile.class
-|   +-- resources/
-|   |   \-- com/
-|   |       \-- safecube/
-|   |           \-- tooling/
-|   |               \-- FolderTreeToFile.java
-|   \-- run-folder-tree.sh
-+-- src/
-|   +-- main/
-|   |   +-- java/
-|   |   |   \-- com/
-|   |   |       \-- miguelrodriguez19/
-|   |   |           \-- safecube/
-|   |   |               \-- SafeCubeBackendApplication.java
-|   |   \-- resources/
-|   |       +-- static/
-|   |       +-- templates/
-|   |       \-- application.yaml
-|   \-- test/
-|       \-- java/
-|           \-- com/
-|               \-- miguelrodriguez19/
-|                   \-- safecube/
-|                       +-- SafeCubeBackendApplicationTests.java
-|                       \-- TestcontainersConfiguration.java
-+-- target/ # Skipped Content
-+-- .env
-+-- .gitattributes
-+-- .gitignore
-+-- docker-compose.yml
-+-- Dockerfile
-+-- LICENSE
-\-- pom.xml
+├── docs/
+│   ├── glossary/
+│   │   └── ubiquitous_glossary.md
+│   ├── manifest/
+│   │   └── safe_cube_backend_manifiesto_v_1.md
+│   ├── use-cases/
+│   │   ├── auth/
+│   │   │   ├── auth_tokens_session_strategy_safe_cube_backend_v_1.md
+│   │   │   └── auth_use_cases_safe_cube_backend_v_1.md
+│   │   ├── user/
+│   │   │   └── user_use_cases_safe_cube_backend_v_1.md
+│   │   └── vault/
+│   │       ├── vault_crypto_strategy_v_1.md
+│   │       └── vault_use_cases_safe_cube_backend_v_1.md
+│   ├── package-structure.txt
+│   └── README.md
+├── scripts/
+│   │   ├── resources/
+│   │   └── com/
+│   │       └── safecube/
+│   │           └── tooling/
+│   │               └── FolderTreeToFile.java
+│   └── run-folder-tree.sh
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── miguelrodriguez19/
+│   │   │           └── safecube/
+│   │   │               └── SafeCubeBackendApplication.java
+│   │   └── resources/
+│   │       ├── static/
+│   │       ├── templates/
+│   │       └── application.yaml
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── miguelrodriguez19/
+│                   └── safecube/
+│                       ├── SafeCubeBackendApplicationTests.java
+│                       └── TestcontainersConfiguration.java
+├── .env
+├── .gitattributes
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── LICENSE
+└── pom.xml
