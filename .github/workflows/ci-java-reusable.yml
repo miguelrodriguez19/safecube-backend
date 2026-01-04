@@ -1,0 +1,136 @@
+# .github/workflows/ci-java-reusable.yml
+name: 'Java CI (reusable)'
+
+on:
+  workflow_call:
+    inputs:
+      run-version-check:
+        description: 'Run the version-guard job (checks that the Maven version was bumped).'
+        type: boolean
+        default: true
+      run-security-scan:
+        description: 'Run dependency vulnerability scanning (dependency-review-action).'
+        type: boolean
+        default: false
+      run-code-scan:
+        description: 'Run CodeQL code scanning.'
+        type: boolean
+        default: false
+
+jobs:
+
+  ###################################################################
+  # 1. Build, lint & test (always runs)                             #
+  ###################################################################
+  build-test:
+    name: 'Build, Lint & Test'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        jdk: [21]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.jdk }} (+ Maven cache)
+        uses: ./.github/actions/java-steps
+        with:
+          java-version: ${{ matrix.jdk }}
+
+      - name: Verify formatting with Spotless
+        run: mvn -B spotless:check
+
+      - name: Build & test
+        run: mvn -B verify
+
+      - name: Upload reports (JaCoCo / Spotless)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            **/target/site/jacoco
+            **/target/spotless*
+
+
+  ###################################################################
+  # 2. Version guard (optional)                                     #
+  ###################################################################
+  version-guard:
+    name: 'Version guard'
+    if: ${{ inputs.run-version-check }}
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install xmllint (libxml2-utils)
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+      - name: Make script executable
+        run: chmod +x .github/scripts/check-version.sh
+
+      - name: Check version bump
+        run: ./.github/scripts/check-version.sh
+
+
+  ###################################################################
+  # 3. Dependency security scan (optional)                          #
+  ###################################################################
+  dependency-scan:
+    name: 'Dependency security scan'
+    if: ${{ inputs.run-security-scan && github.repository == 'miguelrodriguez19/safecube-backend' }}
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+
+
+  ###################################################################
+  # 4. CodeQL code scan (optional)                                  #
+  ###################################################################
+  codeql-scan:
+    name: 'CodeQL scan'
+    if: ${{ inputs.run-code-scan }}
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      matrix:
+        jdk: [21]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ matrix.jdk }} (+ Maven cache)
+        uses: ./.github/actions/java-steps
+        with:
+          java-version: ${{ matrix.jdk }}
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          build-mode: manual
+
+      - name: Build project (for CodeQL)
+        run: mvn -B -ntp verify -DskipTests
+
+      - uses: github/codeql-action/analyze@v3

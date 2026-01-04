@@ -1,0 +1,27 @@
+# actions/java-steps/java-setup.yml
+name: 'Java steps (setup-java + Maven cache)'
+description: 'Sets up a JDK and enables dependency caching'
+
+inputs:
+  java-version:
+    description: 'JDK version to install.'
+    default: '21'
+    required: false
+  distribution:
+    description: 'JDK distribution to use.'
+    default: 'temurin'
+    required: false
+  cache:
+    description: 'Dependency-cache mode for actions/setup-java.'
+    default: 'maven'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Java with Maven cache
+      uses: actions/setup-java@v4
+      with:
+        distribution: ${{ inputs.distribution }}
+        java-version: ${{ inputs.java-version }}
+        cache: ${{ inputs.cache }}

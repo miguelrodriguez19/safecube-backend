@@ -1,0 +1,51 @@
+# .github/workflows/pr-checks.yml
+name: 'Pull Request checks'
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  ###################################################################
+  # 1. CI + security gate (reusable workflow)                       #
+  ###################################################################
+  ci:
+    name: 'CI / Security checks'
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+
+    uses: ./.github/workflows/ci-java-reusable.yml
+    with:
+      run-version-check: true
+      run-security-scan: true
+      run-code-scan: true
+
+
+  ###################################################################
+  # 2. Documentation consistency check                              #
+  ###################################################################
+  docs-consistency-check:
+    name: 'Docs consistency check (package structure)'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x .github/scripts/check-package-structure.sh
+
+      - name: Check package_structure.md is up to date
+        run: ./.github/scripts/check-package-structure.sh
+
+
+  ###################################################################
+  # Secret scanning                                                  #
+  ###################################################################
+  # GitHub native secret scanning (push protection) is enabled at
+  # repository level and does not require an explicit job here.
