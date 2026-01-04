@@ -237,26 +237,7 @@
     <!-- Maven Profiles          -->
     <!-- ======================= -->
     <profiles>
-        <profile>
-            <id>test</id>
-            <properties>
-                <spring.profiles.active>test</spring.profiles.active>
-            </properties>
-        </profile>
 
-        <profile>
-            <id>integration</id>
-            <properties>
-                <spring.profiles.active>integration</spring.profiles.active>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>prod</id>
-            <properties>
-                <spring.profiles.active>prod</spring.profiles.active>
-            </properties>
-        </profile>
     </profiles>
 
 
