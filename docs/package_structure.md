@@ -1,3 +1,7 @@
+# Package Structure
+Updated: 04-01-2026 01:41:10
+
+```
 safecube-backend/
 ├── docs/
 │   ├── glossary/
@@ -13,14 +17,14 @@ safecube-backend/
 │   │   └── vault/
 │   │       ├── vault_crypto_strategy_v_1.md
 │   │       └── vault_use_cases_safe_cube_backend_v_1.md
-│   ├── package-structure.txt
+│   ├── package_structure.md
 │   └── README.md
 ├── scripts/
-│   │   ├── resources/
-│   │   └── com/
-│   │       └── safecube/
-│   │           └── tooling/
-│   │               └── FolderTreeToFile.java
+│   │   └── resources/
+│   │       └── com/
+│   │           └── safecube/
+│   │               └── tooling/
+│   │                   └── FolderTreeToFile.java
 │   └── run-folder-tree.sh
 ├── src/
 │   ├── main/
@@ -28,6 +32,7 @@ safecube-backend/
 │   │   │   └── com/
 │   │   │       └── miguelrodriguez19/
 │   │   │           └── safecube/
+│   │   │               ├── FolderTreeToFile.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
 │   │       ├── static/
@@ -46,3 +51,4 @@ safecube-backend/
 ├── Dockerfile
 ├── LICENSE
 └── pom.xml
+```

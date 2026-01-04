@@ -12,7 +12,7 @@ JAVA_PACKAGE="com.safecube.tooling"
 JAVA_CLASS="FolderTreeToFile"
 JAVA_FILE="${RESOURCES_DIR}/com/safecube/tooling/${JAVA_CLASS}.java"
 
-OUTPUT_TARGET="docs/package-structure.txt"
+OUTPUT_TARGET="docs/package_structure.md"
 
 command -v java >/dev/null 2>&1 || {
   echo "java not found (JDK 21+ required)" >&2
