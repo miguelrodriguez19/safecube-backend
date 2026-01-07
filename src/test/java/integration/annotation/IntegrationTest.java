@@ -24,5 +24,4 @@ public @interface IntegrationTest {
 
   @AliasFor(annotation = ContextConfiguration.class, attribute = "initializers")
   Class<?>[] initializers() default {PostgreSQLInitializer.class};
-
 }

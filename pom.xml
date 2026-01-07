@@ -59,6 +59,7 @@
         <!-- Explicit versions for non-Spring-managed dependencies -->
         <archunit.version>1.4.1</archunit.version>
         <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
+        <google-java-format.version>1.21.0</google-java-format.version>
         <jacoco.version>0.8.14</jacoco.version>
         <karate.version>1.4.1</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
@@ -67,6 +68,8 @@
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
         <pitest.version>1.15.1</pitest.version>
         <pitest.junit5.plugin.version>1.2.1</pitest.junit5.plugin.version>
+        <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
+
     </properties>
 
     <dependencies>
@@ -379,7 +382,34 @@
                 </configuration>
             </plugin>
 
-
+            <!-- Spotless -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>source-code</id>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <java>
+                                <includes>
+                                    <include>src/main/java/**/*.java</include>
+                                    <include>src/test/java/**/*.java</include>
+                                </includes>
+                                <googleJavaFormat>
+                                    <version>${google-java-format.version}</version>
+                                </googleJavaFormat>
+                                <removeUnusedImports/>
+                                <formatAnnotations/>
+                            </java>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
