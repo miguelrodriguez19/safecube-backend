@@ -1,15 +1,13 @@
 package integration.com.miguelrodriguez19.safecube;
 
+import integration.annotation.IntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
-@Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@IntegrationTest
 class SafeCubeBackendApplicationIntegrationTest {
 
-	@Test
-	void contextLoads() {
-	}
-
+  @Test
+  void contextLoads() {
+    // Check if app starts correctly
+  }
 }
