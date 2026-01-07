@@ -57,7 +57,7 @@
         <skip.pitest>true</skip.pitest>
 
         <!-- Explicit versions for non-Spring-managed dependencies -->
-        <archunit.version>1.2.1</archunit.version>
+        <archunit.version>1.4.1</archunit.version>
         <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <jacoco.version>0.8.14</jacoco.version>
         <karate.version>1.4.1</karate.version>
@@ -140,7 +140,7 @@
         <!-- Architecture tests -->
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
-            <artifactId>archunit-junit5</artifactId>
+            <artifactId>archunit</artifactId>
             <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -216,7 +216,7 @@
                     <configuration>
                         <skipTests>${skip.surefire}</skipTests>
                         <includes>
-                            <include>architecture/*Test</include>
+                            <include>architecture/**/*Test</include>
                             <include>unit/**/*Test</include>
                         </includes>
                         <excludes>
