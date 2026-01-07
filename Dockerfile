@@ -10,7 +10,7 @@ RUN addgroup -S runtimegroup \
 
 WORKDIR /app
 
-COPY target/safecube-backend.jar app.jar
+COPY target/safecube-backend-executable.jar app.jar
 
 RUN chown -R runtimeuser:runtimegroup /app
 
