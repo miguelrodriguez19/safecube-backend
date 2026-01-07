@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOC_FILE="docs/package_structure.md"
+DOC_FILE="docs/package-structure/package_structure.md"
 
 if [[ ! -f "$DOC_FILE" ]]; then
   echo "ERR :: Documentation file not found: $DOC_FILE"
