@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 07-01-2026 02:04:09
+Updated: 07-01-2026 08:28:44
 
 ```
 safecube-backend/
@@ -20,10 +20,16 @@ safecube-backend/
 │   ├── [LOCAL] clean verify.run.xml
 │   └── [LOCAL] verify mutationTests (piTest).run.xml
 ├── docs/
+│   ├── architecture/
+│   │   ├── decisions/
+│   │   │   └── .gitkeep
+│   │   ├── tests/
+│   │   │   └── architecture_tests_safe_cube_backend.md
+│   │   └── safe_cube_backend_manifiesto_v_1.md
 │   ├── glossary/
 │   │   └── ubiquitous_glossary.md
-│   ├── manifest/
-│   │   └── safe_cube_backend_manifiesto_v_1.md
+│   ├── package-structure/
+│   │   └── package_structure.md
 │   ├── pipeline/
 │   │   └── pipeline.md
 │   ├── use-cases/
@@ -35,10 +41,7 @@ safecube-backend/
 │   │   └── vault/
 │   │       ├── vault_crypto_strategy_v_1.md
 │   │       └── vault_use_cases_safe_cube_backend_v_1.md
-│   ├── package_structure.md
-│   └── README.md
-├── META-INF/
-│   └── MANIFEST.MF
+│   │   └── README.md
 ├── scripts/
 │   │   ├── resources/
 │   │   └── com/

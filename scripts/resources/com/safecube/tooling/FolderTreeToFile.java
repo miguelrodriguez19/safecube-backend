@@ -35,7 +35,7 @@ public final class FolderTreeToFile {
             Set.of(".git", ".idea", "target", ".build");
 
     private static final Set<String> EXCLUDED_FILES =
-            Set.of(".env");
+            Set.of(".env", ".DS_Store");
 
     private FolderTreeToFile() {
         // utility class
