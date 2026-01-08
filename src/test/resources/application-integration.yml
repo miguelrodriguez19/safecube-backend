@@ -1,0 +1,9 @@
+spring:
+  test:
+    database:
+      replace: none
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+

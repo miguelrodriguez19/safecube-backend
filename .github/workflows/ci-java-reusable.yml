@@ -43,7 +43,7 @@ jobs:
         run: mvn -B spotless:check
 
       - name: Build & test
-        run: mvn -B verify
+        run: mvn -B verify -Pacceptance,mutation
 
       - name: Upload reports (JaCoCo / Spotless)
         if: always()
