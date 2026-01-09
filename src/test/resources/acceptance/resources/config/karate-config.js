@@ -6,7 +6,7 @@ function fn() {
         classPath: classPath,
         behavioursPath: classPath + 'features/',
         // URLS
-        baseURL: 'http://localhost:8080/safecube'
+        baseUrl: 'http://localhost:8080/safecube'
     };
 
     karate.configure('connectTimeout', 500);
