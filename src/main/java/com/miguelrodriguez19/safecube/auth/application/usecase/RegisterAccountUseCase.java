@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.auth.domain.model.AuthAccount;
 import com.miguelrodriguez19.safecube.shared.result.Result;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * RegisterAccountUseCase
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
  *
  * @see "docs/use-case/auth_use_cases_safe_cube_backend_v_1"
  */
+@Component
 @RequiredArgsConstructor
 public class RegisterAccountUseCase {
 
