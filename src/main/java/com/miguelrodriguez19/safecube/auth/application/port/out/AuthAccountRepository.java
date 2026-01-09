@@ -37,5 +37,5 @@ public interface AuthAccountRepository {
    *
    * @param account the account to persist
    */
-  int save(final AuthAccount account);
+  void save(final AuthAccount account);
 }

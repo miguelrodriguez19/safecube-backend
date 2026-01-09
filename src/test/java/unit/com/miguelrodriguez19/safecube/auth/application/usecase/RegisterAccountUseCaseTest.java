@@ -2,6 +2,7 @@ package unit.com.miguelrodriguez19.safecube.auth.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -36,7 +37,7 @@ class RegisterAccountUseCaseTest {
     final var hashedPassword = "hashedPassword";
     when(passwordHasher.hash(command.rawPassword())).thenReturn(hashedPassword);
 
-    when(repository.save(any(AuthAccount.class))).thenReturn(1);
+    doNothing().when(repository).save(any(AuthAccount.class));
 
     final var result = target.execute(command);
 
