@@ -38,7 +38,9 @@ public class AuthAccount {
   }
 
   public static AuthAccount of(
-          @NotBlank final String email, @NotBlank final String passwordHash, @NotNull final Instant createdAt) {
+      @NotBlank final String email,
+      @NotBlank final String passwordHash,
+      @NotNull final Instant createdAt) {
 
     return new AuthAccount(UUID.randomUUID(), email, passwordHash, true, createdAt, null);
   }
