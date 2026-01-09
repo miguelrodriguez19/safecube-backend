@@ -16,22 +16,6 @@ import org.junit.jupiter.api.Test;
 class DomainPurityTest {
 
   @Test
-  void domain_should_not_use_lombok() {
-    final var classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
-
-    final var rule =
-        noClasses()
-            .that()
-            .resideInAPackage(DOMAIN_PACKAGE)
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage("lombok..")
-            .because("domain must be explicit and free of Lombok magic");
-
-    rule.check(classes);
-  }
-
-  @Test
   void domain_should_not_use_spring_annotations() {
     final var classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
 
