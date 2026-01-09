@@ -35,5 +35,6 @@ services:
       POSTGRES_PASSWORD: Safecube1234
     volumes:
       - safecube-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     networks:
       - safecube-net
