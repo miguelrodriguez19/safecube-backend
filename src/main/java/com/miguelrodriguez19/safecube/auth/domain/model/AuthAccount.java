@@ -45,6 +45,16 @@ public class AuthAccount {
     return new AuthAccount(UUID.randomUUID(), email, passwordHash, true, createdAt, null);
   }
 
+  public static AuthAccount restore(
+      @NotNull final UUID accountId,
+      @NotBlank final String email,
+      @NotBlank final String passwordHash,
+      final boolean enabled,
+      @NotNull final Instant createdAt,
+      final Instant disabledAt) {
+    return new AuthAccount(accountId, email, passwordHash, enabled, createdAt, disabledAt);
+  }
+
   public void disable(@NotNull final Instant disabledAt) {
     if (!this.enabled) {
       return;
