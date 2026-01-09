@@ -1,9 +1,10 @@
 spring:
-  test:
-    database:
-      replace: none
-
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
 

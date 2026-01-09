@@ -9,14 +9,16 @@ import java.lang.annotation.Target;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
+@ActiveProfiles
 @ContextConfiguration
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public @interface IntegrationTest {
 
   @AliasFor(annotation = SpringBootTest.class, attribute = "classes")
@@ -24,4 +26,7 @@ public @interface IntegrationTest {
 
   @AliasFor(annotation = ContextConfiguration.class, attribute = "initializers")
   Class<?>[] initializers() default {PostgreSQLInitializer.class};
+
+  @AliasFor(annotation = ActiveProfiles.class, attribute = "profiles")
+  String[] profiles() default {"integration"};
 }
