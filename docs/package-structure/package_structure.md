@@ -1,12 +1,12 @@
 # Package Structure
-Updated: 07-01-2026 08:28:44
+Updated: 10-01-2026 07:10:39
 
 ```
 safecube-backend/
 ├── .github/
 │   ├── actions/
 │   │   └── java-steps/
-│   │       └── java-setup.yml
+│   │       └── action.yml
 │   ├── scripts/
 │   │   ├── check-package-structure.sh
 │   │   └── check-version.sh
@@ -15,10 +15,13 @@ safecube-backend/
 │       ├── pr_checks.yml
 │       └── release-main.yml
 ├── .run/
-│   ├── [CI] clean verify (acceptance, mutation).run.xml
 │   ├── [LOCAL] clean verify (acceptance).run.xml
 │   ├── [LOCAL] clean verify.run.xml
-│   └── [LOCAL] verify mutationTests (piTest).run.xml
+│   ├── [LOCAL] verify acceptance (only).run.xml
+│   └── [LOCAL] verify mutationTests (piTest) (only).run.xml
+├── docker/
+│   └── postgres/
+│       └── init-schema.sql
 ├── docs/
 │   ├── architecture/
 │   │   ├── decisions/
@@ -55,6 +58,64 @@ safecube-backend/
 │   │   │   └── com/
 │   │   │       └── miguelrodriguez19/
 │   │   │           └── safecube/
+│   │   │               ├── auth/
+│   │   │               │   ├── application/
+│   │   │               │   │   ├── dto/
+│   │   │               │   │   │   ├── AuthenticateAccountCommand.java
+│   │   │               │   │   │   ├── AuthenticateAccountResult.java
+│   │   │               │   │   │   ├── IssuedTokensResult.java
+│   │   │               │   │   │   ├── RegisterAccountCommand.java
+│   │   │               │   │   │   └── RegisterAccountResult.java
+│   │   │               │   │   ├── error/
+│   │   │               │   │   │   └── AuthError.java
+│   │   │               │   │   ├── port/
+│   │   │               │   │   │   └── out/
+│   │   │               │   │   │       ├── AccessTokenIssuer.java
+│   │   │               │   │   │       ├── AuthAccountRepository.java
+│   │   │               │   │   │       ├── PasswordHasher.java
+│   │   │               │   │   │       ├── RefreshTokenRecord.java
+│   │   │               │   │   │       └── RefreshTokenRepository.java
+│   │   │               │   │   └── usecase/
+│   │   │               │   │       ├── AuthenticateAccountUseCase.java
+│   │   │               │   │       ├── IssueTokensUseCase.java
+│   │   │               │   │       ├── LogoutUseCase.java
+│   │   │               │   │       ├── RefreshTokensUseCase.java
+│   │   │               │   │       └── RegisterAccountUseCase.java
+│   │   │               │   ├── domain/
+│   │   │               │   │   └── model/
+│   │   │               │   │       └── AuthAccount.java
+│   │   │               │   └── infrastructure/
+│   │   │               │       ├── crypto/
+│   │   │               │       │   └── BCryptPasswordHasher.java
+│   │   │               │       ├── persistence/
+│   │   │               │       │   ├── jpa/
+│   │   │               │       │   │   ├── AuthAccountJpaEntity.java
+│   │   │               │       │   │   ├── AuthAccountJpaRepository.java
+│   │   │               │       │   │   ├── RefreshTokenJpaEntity.java
+│   │   │               │       │   │   └── RefreshTokenJpaRepository.java
+│   │   │               │       │   ├── mapper/
+│   │   │               │       │   │   └── AuthAccountMapper.java
+│   │   │               │       │   ├── JpaAuthAccountRepositoryAdapter.java
+│   │   │               │       │   └── JpaRefreshTokenRepositoryAdapter.java
+│   │   │               │       ├── security/
+│   │   │               │       │   ├── JwtAccessTokenIssuer.java
+│   │   │               │       │   ├── JwtAuthenticationFilter.java
+│   │   │               │       │   ├── JwtTokenParser.java
+│   │   │               │       │   └── RefreshTokenHasher.java
+│   │   │               │       └── web/
+│   │   │               │           ├── dto/
+│   │   │               │           │   ├── AuthenticateAccountRequest.java
+│   │   │               │           │   ├── AuthTokensResponse.java
+│   │   │               │           │   ├── RefreshTokenRequest.java
+│   │   │               │           │   └── RegisterAccountRequest.java
+│   │   │               │           └── AuthController.java
+│   │   │               ├── shared/
+│   │   │               │   ├── exception/
+│   │   │               │   │   └── WebExceptionHandler.java
+│   │   │               │   ├── result/
+│   │   │               │   │   └── Result.java
+│   │   │               │   └── security/
+│   │   │               │       └── SecurityConfig.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
 │   │       ├── static/
@@ -64,8 +125,23 @@ safecube-backend/
 │       ├── java/
 │       │   ├── acceptance/
 │       │   │   └── RunAcceptanceTest.java
-│       │   ├── achitecture/
-│       │   │   └── .gitkeep
+│       │   ├── architecture/
+│       │   │   ├── application/
+│       │   │   │   ├── ApplicationDependencyTest.java
+│       │   │   │   └── UseCaseContractTest.java
+│       │   │   ├── domain/
+│       │   │   │   ├── DomainIndependenceTest.java
+│       │   │   │   └── DomainPurityTest.java
+│       │   │   ├── infrastructure/
+│       │   │   │   ├── AdapterImplementationTest.java
+│       │   │   │   └── ControllerIsolationTest.java
+│       │   │   ├── shared/
+│       │   │   │   └── NamingAndConventionsTest.java
+│       │   │   ├── slices/
+│       │   │   │   └── SliceIsolationTest.java
+│       │   │   └── support/
+│       │   │       ├── ArchitectureConstants.java
+│       │   │       └── ArchUnitConditions.java
 │       │   ├── integration/
 │       │   │   ├── annotation/
 │       │   │   │   ├── support/
@@ -74,19 +150,63 @@ safecube-backend/
 │       │   │   └── com/
 │       │   │       └── miguelrodriguez19/
 │       │   │           └── safecube/
+│       │   │               ├── auth/
+│       │   │               │   └── infrastructure/
+│       │   │               │       └── persistence/
+│       │   │               │           ├── JpaAuthAccountRepositoryAdapterIntegrationTest.java
+│       │   │               │           └── JpaRefreshTokenRepositoryAdapterIntegrationTest.java
 │       │   │               └── SafeCubeBackendApplicationIntegrationTest.java
 │       │   └── unit/
-│       │       └── annotation/
-│       │           └── UnitTest.java
+│       │       ├── annotation/
+│       │       │   └── UnitTest.java
+│       │       └── com/
+│       │           └── miguelrodriguez19/
+│       │               └── safecube/
+│       │                   └── auth/
+│       │                       ├── application/
+│       │                       │   └── usecase/
+│       │                       │       ├── AuthenticateAccountUseCaseTest.java
+│       │                       │       ├── IssueTokensUseCaseTest.java
+│       │                       │       ├── LogoutUseCaseTest.java
+│       │                       │       ├── RefreshTokensUseCaseTest.java
+│       │                       │       └── RegisterAccountUseCaseTest.java
+│       │                       ├── domain/
+│       │                       │   └── model/
+│       │                       │       └── AuthAccountTest.java
+│       │                       └── infrastructure/
+│       │                           ├── crypto/
+│       │                           │   └── BCryptPasswordHasherTest.java
+│       │                           ├── persistence/
+│       │                           │   ├── mapper/
+│       │                           │   │   └── AuthAccountMapperTest.java
+│       │                           │   ├── JpaAuthAccountRepositoryAdapterTest.java
+│       │                           │   └── JpaRefreshTokenRepositoryAdapterTest.java
+│       │                           └── security/
+│       │                               ├── JwtAccessTokenIssuerTest.java
+│       │                               ├── JwtAuthenticationFilterTest.java
+│       │                               ├── JwtTokenParserTest.java
+│       │                               └── RefreshTokenHasherTest.java
 │       └── resources/
 │           ├── acceptance/
 │           │   ├── features/
+│           │   │   ├── auth/
+│           │   │   │   ├── authentication.feature
+│           │   │   │   ├── logout.feature
+│           │   │   │   ├── refresh.feature
+│           │   │   │   └── register.feature
 │           │   │   └── actuatorHealth.feature
 │           │   └── resources/
-│           │       └── config/
-│           │           └── karate-config.js
+│           │       ├── _helpers/
+│           │       │   ├── loginHelper.feature
+│           │       │   └── registerHelper.feature
+│           │       ├── config/
+│           │       │   └── karate-config.js
+│           │       └── js/
+│           │           └── utils.js
 │           ├── application-integration.yml
-│           └── application-jpa.yml
+│           ├── application-jpa.yml
+│           ├── archunit.properties
+│           └── schema.sql
 ├── .gitattributes
 ├── .gitignore
 ├── docker-compose.yml
