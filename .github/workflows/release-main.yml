@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
       # Configure Git identity for Maven Release Plugin commits
       - name: Configure Git identity
