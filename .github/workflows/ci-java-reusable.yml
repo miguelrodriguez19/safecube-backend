@@ -42,8 +42,11 @@ jobs:
       - name: Verify formatting with Spotless
         run: mvn -B spotless:check
 
-      - name: Build & test
-        run: mvn -B verify -Pacceptance,mutation
+      - name: Build & acceptance tests
+        run: mvn -B verify -Pacceptance
+
+      - name: Mutation testing
+        run: mvn -B verify -Pmutation
 
       - name: Upload reports (JaCoCo / Spotless)
         if: always()
