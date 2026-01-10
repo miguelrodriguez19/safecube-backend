@@ -54,6 +54,7 @@
         <!-- execution flags -->
         <skip.surefire>false</skip.surefire>
         <skip.failsafe>false</skip.failsafe>
+        <skip.docker>true</skip.docker>
         <skip.pitest>true</skip.pitest>
 
         <!-- Explicit versions for non-Spring-managed dependencies -->
@@ -287,6 +288,20 @@
                         <coverageThreshold>0</coverageThreshold>
                     </configuration>
                 </plugin>
+
+                <!-- Docker orchestration -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${maven-exec.version}</version>
+
+                    <configuration>
+                        <skip>${skip.docker}</skip>
+                        <environmentVariables>
+                            <DOCKER_IMAGE>${project.artifactId}</DOCKER_IMAGE>
+                        </environmentVariables>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -430,6 +445,91 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Docker orchestration executions (enabled via profile) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+
+                <executions>
+
+                    <execution>
+                        <id>docker-down-before</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>compose</argument>
+                                <argument>-f</argument>
+                                <argument>docker-compose.yml</argument>
+                                <argument>down</argument>
+                                <argument>-v</argument>
+                                <argument>--rmi</argument>
+                                <argument>local</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>docker-pull</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>compose</argument>
+                                <argument>-f</argument>
+                                <argument>docker-compose.yml</argument>
+                                <argument>pull</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>docker-up</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>compose</argument>
+                                <argument>-f</argument>
+                                <argument>docker-compose.yml</argument>
+                                <argument>up</argument>
+                                <argument>-d</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>docker-down-after</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>compose</argument>
+                                <argument>-f</argument>
+                                <argument>docker-compose.yml</argument>
+                                <argument>down</argument>
+                                <argument>-v</argument>
+                                <argument>--rmi</argument>
+                                <argument>local</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -438,13 +538,16 @@
     <!-- ======================= -->
     <profiles>
 
-        <!-- =========== Acceptance ===========
-             Prepare Docker Compose services
-             (pre: down & up, post: down) and
-             run integration & acceptance tests
-        -->
+        <!-- ========= acceptance =========
+             Orchestrate docker and run
+             integration & acceptance tests
+             ============================== -->
         <profile>
             <id>acceptance</id>
+
+            <properties>
+                <skip.docker>false</skip.docker>
+            </properties>
 
             <build>
                 <plugins>
@@ -457,114 +560,58 @@
                             </includes>
                         </configuration>
                     </plugin>
-
-                    <!-- DOCKER ORCHESTRATION -->
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${maven-exec.version}</version>
-
-                        <configuration>
-                            <environmentVariables>
-                                <DOCKER_IMAGE>${project.artifactId}</DOCKER_IMAGE>
-                            </environmentVariables>
-                        </configuration>
-
-                        <executions>
-
-                            <!-- PRE-TEST: docker compose down -->
-                            <execution>
-                                <id>docker-down-before</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>docker</executable>
-                                    <arguments>
-                                        <argument>compose</argument>
-                                        <argument>-f</argument>
-                                        <argument>docker-compose.yml</argument>
-                                        <argument>down</argument>
-                                        <argument>-v</argument>
-                                        <argument>--rmi</argument>
-                                        <argument>local</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-
-                            <!-- PRE-TEST: docker compose pull -->
-                            <execution>
-                                <id>docker-pull</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>docker</executable>
-                                    <arguments>
-                                        <argument>compose</argument>
-                                        <argument>-f</argument>
-                                        <argument>docker-compose.yml</argument>
-                                        <argument>pull</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-
-                            <!-- PRE-TEST: docker compose up -->
-                            <execution>
-                                <id>docker-up</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>docker</executable>
-                                    <arguments>
-                                        <argument>compose</argument>
-                                        <argument>-f</argument>
-                                        <argument>docker-compose.yml</argument>
-                                        <argument>up</argument>
-                                        <argument>-d</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-
-                            <!-- POST-TEST: docker compose down -->
-                            <execution>
-                                <id>docker-down-after</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>docker</executable>
-                                    <arguments>
-                                        <argument>compose</argument>
-                                        <argument>-f</argument>
-                                        <argument>docker-compose.yml</argument>
-                                        <argument>down</argument>
-                                        <argument>-v</argument>
-                                        <argument>--rmi</argument>
-                                        <argument>local</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-
-                        </executions>
-                    </plugin>
-
                 </plugins>
             </build>
         </profile>
 
+
+        <!-- ========= acceptance-only =========
+             Orchestrate docker and run only
+             acceptance tests (no unit, arch or
+             integration)
+             =================================== -->
+        <profile>
+            <id>acceptance-only</id>
+
+            <properties>
+                <skip.surefire>true</skip.surefire>
+                <skip.failsafe>false</skip.failsafe>
+                <skip.pitest>true</skip.pitest>
+                <skip.jacoco>true</skip.jacoco>
+                <skip.repackage>true</skip.repackage>
+                <skip.docker>false</skip.docker>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>acceptance/**/*Test</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
         <!-- =========== Mutation ===========
-             Set flag: skip.pitest = false
-        -->
+             Runs only mutations test
+             ================================ -->
         <profile>
             <id>mutation</id>
             <properties>
+                <!-- Enable PIT -->
                 <skip.pitest>false</skip.pitest>
+
+                <!-- Disable everything else -->
+                <skip.surefire>true</skip.surefire>
+                <skip.failsafe>true</skip.failsafe>
+                <skip.docker>true</skip.docker>
+                <skip.jacoco>true</skip.jacoco>
+                <skip.repackage>true</skip.repackage>
             </properties>
         </profile>
     </profiles>
