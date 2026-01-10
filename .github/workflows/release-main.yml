@@ -36,12 +36,21 @@ jobs:
     needs: ci-lite
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # create git tag & GitHub Release
+      contents: write      # create git commits + tags + GitHub Release
       packages: write      # push image to GHCR
 
     steps:
+      # Checkout with full history (required by Maven Release Plugin)
       - name: Checkout sources
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Configure Git identity for Maven Release Plugin commits
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Set up Java 21 (+ Maven cache)
         uses: ./.github/actions/java-steps
