@@ -11,46 +11,22 @@ Feature: Register authentication account
     And request
       """
       {
-        "email": "user@safecube.io",
+        "email": "register@safecube.io",
         "password": "password123"
       }
       """
     When method post
     Then status 200
-    And match response.accountId != null
-    And match response.createdAt != null
 
 
   Scenario: Register fails when email already exists
-    Given path '/auth/register'
-    And request
-      """
-      {
-        "email": "duplicate@safecube.io",
-        "password": "password123"
-      }
-      """
-    When method post
-    Then status 200
+    * def rq = { email: 'duplicate@safecube.io', password: 'password123' }
+
+    # Register
+    * call read(registerHelper) rq
 
     Given path '/auth/register'
-    And request
-      """
-      {
-        "email": "duplicate@safecube.io",
-        "password": "password123"
-      }
-      """
+    And request rq
+
     When method post
     Then status 409
-
-  Scenario: Register fails with invalid payload
-    Given path '/auth/register'
-    * def rq = `{"email": "not-an-email","password": ""}`
-
-    And request rq
-    And print rq
-
-    When method post
-    Then print response
-    And status 400

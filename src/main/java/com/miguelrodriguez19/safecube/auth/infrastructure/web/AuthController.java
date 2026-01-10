@@ -126,8 +126,7 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(
-      @AuthenticationPrincipal(expression = "this") final UUID accountId) {
+  public ResponseEntity<Void> logout(@AuthenticationPrincipal final UUID accountId) {
 
     logoutUseCase.execute(accountId, Instant.now(clock));
     return ResponseEntity.noContent().build();
