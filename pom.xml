@@ -19,7 +19,7 @@
 
     <groupId>com.miguelrodriguez19.safecube</groupId>
     <artifactId>safecube-backend</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.6-SNAPSHOT</version>
 
     <name>SafeCube Backend</name>
     <description>Core backend service for SafeCube</description>
