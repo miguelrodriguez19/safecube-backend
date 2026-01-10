@@ -19,3 +19,9 @@ spring:
       connection-timeout: 5000
       idle-timeout: 30000
       max-lifetime: 60000
+
+security:
+  jwt:
+    issuer: safecube
+    ttl-seconds: 900
+    secret: ${JWT_SECRET:change-me}

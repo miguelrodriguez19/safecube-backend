@@ -7,4 +7,8 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
 
-
+security:
+  jwt:
+    issuer: safecube
+    ttl-seconds: 900
+    secret: Q9f1G7LZkW2dKpTt8n3E5Yx0C4JbR6sFqU0mN8oP7aA=

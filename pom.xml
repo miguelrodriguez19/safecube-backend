@@ -61,6 +61,7 @@
         <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <google-java-format.version>1.21.0</google-java-format.version>
         <jacoco.version>0.8.14</jacoco.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <karate.version>1.4.1</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
@@ -69,7 +70,6 @@
         <pitest.version>1.15.1</pitest.version>
         <pitest.junit5.plugin.version>1.2.1</pitest.junit5.plugin.version>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
-
     </properties>
 
     <dependencies>
@@ -88,6 +88,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Persistence -->
