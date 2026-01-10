@@ -18,6 +18,8 @@ jobs:
     name: 'CI (lite)'
     permissions:
       contents: read
+      pull-requests: read
+      security-events: write
 
     uses: ./.github/workflows/ci-java-reusable.yml
     with:
