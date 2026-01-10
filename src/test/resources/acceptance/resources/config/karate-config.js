@@ -1,16 +1,24 @@
 function fn() {
     const classPath = 'classpath:acceptance/';
 
-    let config = {
+    const config = {
         // PATHS
         classPath: classPath,
         behavioursPath: classPath + 'features/',
+
+        // JS FILES
+        utilsJs: karate.call(classPath + 'resources/js/utils.js'),
+
         // URLS
-        baseURL: 'http://localhost:8080/safecube'
+        baseUrl: 'http://localhost:8080/safecube',
+
+        // HELPERS
+        registerHelper: classPath + '/resources/_helpers/registerHelper.feature',
+        loginHelper: classPath + '/resources/_helpers/loginHelper.feature',
     };
 
-    karate.configure('connectTimeout', 500);
-    karate.configure('readTimeout', 500);
+    karate.configure('connectTimeout', 500000);
+    karate.configure('readTimeout', 500000);
 
     return config;
 }

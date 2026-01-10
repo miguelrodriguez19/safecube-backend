@@ -2,7 +2,7 @@
 Feature: Component health
 
   Background:
-    * url baseURL
+    * url baseUrl
 
 
   Scenario: Check if application has started OK

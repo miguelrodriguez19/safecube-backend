@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="[LOCAL] verify mutationTests (piTest)" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="[LOCAL] verify acceptance (only)" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings" />
@@ -11,10 +11,9 @@
           </option>
           <option name="goals">
             <list>
+              <option value="clean" />
               <option value="verify" />
-              <option value="-Pmutation" />
-              <option value="-Dskip.surefire=true" />
-              <option value="-Dskip.failsafe=true" />
+              <option value="-Pacceptance-only" />
             </list>
           </option>
           <option name="multimoduleDir" />

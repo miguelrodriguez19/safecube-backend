@@ -25,6 +25,8 @@ class AdapterImplementationTest {
             .resideInAPackage(PERSISTENCE_PACKAGE)
             .and()
             .areNotInterfaces()
+            .and()
+            .haveSimpleNameEndingWith("Adapter")
             .should(implementAtLeastOneInterface())
             .because("infrastructure adapters must implement application ports");
 

@@ -18,7 +18,16 @@ services:
       DB_PWD: Safecube1234
       DB_URL: jdbc:postgresql://postgres:5432/safecube
       DB_DATABASE: safecube
+
+      JWT_SECRET: bEyD5M118jJHGUsCVEup8ZpSuOhQizha41ej8M3sqfvio
+      REFRESH_TOKEN_SECRET: OaUjW2Gec0ouSWDjvwrt3gMtoAeavYsRE5Y2K1ij7Ivtc
     working_dir: /app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/safecube/actuator/health"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 3s
     depends_on:
       - postgres
     networks:
@@ -35,5 +44,6 @@ services:
       POSTGRES_PASSWORD: Safecube1234
     volumes:
       - safecube-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     networks:
       - safecube-net
