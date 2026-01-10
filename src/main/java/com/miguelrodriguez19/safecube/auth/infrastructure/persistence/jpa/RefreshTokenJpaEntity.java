@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
  *
  * <p>JPA entity representing a persisted refresh token.
  *
- * <p>Refresh tokens are opaque, hashed before persistence, and have an
- * independent lifecycle from {@link AuthAccountJpaEntity}.
+ * <p>Refresh tokens are opaque, hashed before persistence, and have an independent lifecycle from
+ * {@link AuthAccountJpaEntity}.
  */
 @Entity
 @Table(name = "auth_refresh_tokens")
@@ -25,12 +25,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RefreshTokenJpaEntity {
 
-  @Id
-  private UUID tokenId;
+  @Id private UUID tokenId;
 
-  /**
-   * Account identifier this refresh token belongs to.
-   */
+  /** Account identifier this refresh token belongs to. */
   @Column(nullable = false)
   private UUID accountId;
 
@@ -42,20 +39,14 @@ public class RefreshTokenJpaEntity {
   @Column(nullable = false, unique = true)
   private String tokenHash;
 
-  /**
-   * Token expiration instant.
-   */
+  /** Token expiration instant. */
   @Column(nullable = false)
   private Instant expiresAt;
 
-  /**
-   * Creation instant.
-   */
+  /** Creation instant. */
   @Column(nullable = false)
   private Instant createdAt;
 
-  /**
-   * Revocation instant, if the token has been revoked.
-   */
+  /** Revocation instant, if the token has been revoked. */
   private Instant revokedAt;
 }

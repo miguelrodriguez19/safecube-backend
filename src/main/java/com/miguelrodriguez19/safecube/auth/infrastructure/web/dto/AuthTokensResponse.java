@@ -7,8 +7,4 @@ import java.time.Instant;
  *
  * <p>HTTP response containing issued access and refresh tokens.
  */
-public record AuthTokensResponse(
-    String accessToken,
-    String refreshToken,
-    Instant issuedAt
-) {}
+public record AuthTokensResponse(String accessToken, String refreshToken, Instant issuedAt) {}

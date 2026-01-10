@@ -17,9 +17,7 @@ public class LogoutUseCase {
 
   private final RefreshTokenRepository refreshTokenRepository;
 
-  public void execute(
-          final UUID accountId,
-          final Instant revokedAt) {
+  public void execute(final UUID accountId, final Instant revokedAt) {
 
     refreshTokenRepository.revokeAllByAccountId(accountId, revokedAt);
   }

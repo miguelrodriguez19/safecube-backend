@@ -9,21 +9,19 @@ import unit.annotation.UnitTest;
 @UnitTest
 class RefreshTokenHasherTest {
 
-    @Test
-    void sameToken_shouldProduceSameHash() {
-        final var hasher = new RefreshTokenHasher("secret");
-        final var hash1 = hasher.hash("token");
-        final var hash2 = hasher.hash("token");
+  @Test
+  void sameToken_shouldProduceSameHash() {
+    final var hasher = new RefreshTokenHasher("secret");
+    final var hash1 = hasher.hash("token");
+    final var hash2 = hasher.hash("token");
 
-        assertThat(hash1).isEqualTo(hash2);
-    }
+    assertThat(hash1).isEqualTo(hash2);
+  }
 
-    @Test
-    void differentTokens_shouldProduceDifferentHashes() {
-        final var hasher = new RefreshTokenHasher("secret");
+  @Test
+  void differentTokens_shouldProduceDifferentHashes() {
+    final var hasher = new RefreshTokenHasher("secret");
 
-        assertThat(hasher.hash("a"))
-                .isNotEqualTo(hasher.hash("b"));
-    }
+    assertThat(hasher.hash("a")).isNotEqualTo(hasher.hash("b"));
+  }
 }
-

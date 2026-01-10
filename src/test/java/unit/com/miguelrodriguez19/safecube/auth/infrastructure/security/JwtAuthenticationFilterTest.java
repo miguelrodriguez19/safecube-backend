@@ -19,52 +19,47 @@ import unit.annotation.UnitTest;
 @UnitTest
 class JwtAuthenticationFilterTest {
 
-    @AfterEach
-    void cleanUp() {
-        SecurityContextHolder.clearContext();
-    }
+  @AfterEach
+  void cleanUp() {
+    SecurityContextHolder.clearContext();
+  }
 
-    @Test
-    void shouldPopulateSecurityContext_whenTokenIsValid() throws Exception {
-        final var accountId = UUID.randomUUID();
+  @Test
+  void shouldPopulateSecurityContext_whenTokenIsValid() throws Exception {
+    final var accountId = UUID.randomUUID();
 
-        final var tokenParser = Mockito.mock(JwtTokenParser.class);
-        when(tokenParser.extractAccountId("valid-token"))
-                .thenReturn(Optional.of(accountId));
+    final var tokenParser = Mockito.mock(JwtTokenParser.class);
+    when(tokenParser.extractAccountId("valid-token")).thenReturn(Optional.of(accountId));
 
-        final var target = new JwtAuthenticationFilter(tokenParser);
+    final var target = new JwtAuthenticationFilter(tokenParser);
 
-        final var request = Mockito.mock(HttpServletRequest.class);
-        final var response = Mockito.mock(HttpServletResponse.class);
-        final var filterChain = Mockito.mock(FilterChain.class);
+    final var request = Mockito.mock(HttpServletRequest.class);
+    final var response = Mockito.mock(HttpServletResponse.class);
+    final var filterChain = Mockito.mock(FilterChain.class);
 
-        when(request.getHeader("Authorization"))
-                .thenReturn("Bearer valid-token");
+    when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
 
-        target.doFilter(request, response, filterChain);
+    target.doFilter(request, response, filterChain);
 
-        final var authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+    final var authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        assertThat(authentication).isNotNull();
-        assertThat(authentication.getPrincipal()).isEqualTo(accountId);
-    }
+    assertThat(authentication).isNotNull();
+    assertThat(authentication.getPrincipal()).isEqualTo(accountId);
+  }
 
-    @Test
-    void shouldNotAuthenticate_whenHeaderIsMissing() throws Exception {
-        final var tokenParser = Mockito.mock(JwtTokenParser.class);
-        final var target = new JwtAuthenticationFilter(tokenParser);
+  @Test
+  void shouldNotAuthenticate_whenHeaderIsMissing() throws Exception {
+    final var tokenParser = Mockito.mock(JwtTokenParser.class);
+    final var target = new JwtAuthenticationFilter(tokenParser);
 
-        final var request = Mockito.mock(HttpServletRequest.class);
-        final var response = Mockito.mock(HttpServletResponse.class);
-        final var filterChain = Mockito.mock(FilterChain.class);
+    final var request = Mockito.mock(HttpServletRequest.class);
+    final var response = Mockito.mock(HttpServletResponse.class);
+    final var filterChain = Mockito.mock(FilterChain.class);
 
-        when(request.getHeader("Authorization")).thenReturn(null);
+    when(request.getHeader("Authorization")).thenReturn(null);
 
-        target.doFilter(request, response, filterChain);
+    target.doFilter(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication())
-                .isNull();
-    }
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+  }
 }
-

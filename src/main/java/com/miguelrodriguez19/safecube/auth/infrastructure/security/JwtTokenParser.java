@@ -22,11 +22,9 @@ public class JwtTokenParser {
 
   private final SecretKey key;
 
-  public JwtTokenParser(
-      @Value("${security.jwt.secret}") final String secret) {
+  public JwtTokenParser(@Value("${security.jwt.secret}") final String secret) {
 
-    this.key =
-        Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 
   /**
@@ -38,11 +36,7 @@ public class JwtTokenParser {
   public Optional<UUID> extractAccountId(final String token) {
     try {
       final Claims claims =
-          Jwts.parser()
-              .verifyWith(key)
-              .build()
-              .parseSignedClaims(token)
-              .getPayload();
+          Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
 
       return Optional.of(UUID.fromString(claims.getSubject()));
     } catch (final Exception ex) {

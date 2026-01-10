@@ -19,8 +19,7 @@ public class RefreshTokenHasher {
 
   private final byte[] secret;
 
-  public RefreshTokenHasher(
-          @Value("${security.refresh-token.secret}") final String secret) {
+  public RefreshTokenHasher(@Value("${security.refresh-token.secret}") final String secret) {
     this.secret = secret.getBytes(StandardCharsets.UTF_8);
   }
 
@@ -28,8 +27,7 @@ public class RefreshTokenHasher {
   public String hash(final String rawToken) {
     final Mac mac = Mac.getInstance(HMAC_ALGORITHM);
     mac.init(new SecretKeySpec(secret, HMAC_ALGORITHM));
-    final byte[] result =
-            mac.doFinal(rawToken.getBytes(StandardCharsets.UTF_8));
+    final byte[] result = mac.doFinal(rawToken.getBytes(StandardCharsets.UTF_8));
     return bytesToHex(result);
   }
 

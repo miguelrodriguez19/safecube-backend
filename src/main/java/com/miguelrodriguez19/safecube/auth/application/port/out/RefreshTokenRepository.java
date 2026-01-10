@@ -9,9 +9,8 @@ import java.util.UUID;
  *
  * <p>Application port for managing refresh tokens lifecycle.
  *
- * <p>This port abstracts persistence concerns and allows
- * revocation and lookup of refresh tokens without leaking
- * infrastructure details to the application layer.
+ * <p>This port abstracts persistence concerns and allows revocation and lookup of refresh tokens
+ * without leaking infrastructure details to the application layer.
  */
 public interface RefreshTokenRepository {
 

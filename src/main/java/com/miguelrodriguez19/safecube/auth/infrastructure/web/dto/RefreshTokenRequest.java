@@ -7,6 +7,4 @@ import jakarta.validation.constraints.NotBlank;
  *
  * <p>HTTP request for refreshing access tokens.
  */
-public record RefreshTokenRequest(
-    @NotBlank String refreshToken
-) {}
+public record RefreshTokenRequest(@NotBlank String refreshToken) {}

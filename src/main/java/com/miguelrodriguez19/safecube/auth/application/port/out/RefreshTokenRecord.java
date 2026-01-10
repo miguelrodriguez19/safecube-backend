@@ -6,13 +6,7 @@ import java.util.UUID;
 /**
  * RefreshTokenRecord
  *
- * <p>Immutable projection of a persisted refresh token
- * used by the application layer.
+ * <p>Immutable projection of a persisted refresh token used by the application layer.
  */
 public record RefreshTokenRecord(
-    UUID tokenId,
-    UUID accountId,
-    String tokenHash,
-    Instant expiresAt,
-    Instant revokedAt
-) {}
+    UUID tokenId, UUID accountId, String tokenHash, Instant expiresAt, Instant revokedAt) {}

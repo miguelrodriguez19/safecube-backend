@@ -8,8 +8,8 @@ import java.util.UUID;
  *
  * <p>Application port responsible for issuing access tokens.
  *
- * <p>The concrete implementation may use JWT or any other
- * token format, but the application layer remains agnostic.
+ * <p>The concrete implementation may use JWT or any other token format, but the application layer
+ * remains agnostic.
  */
 public interface AccessTokenIssuer {
 

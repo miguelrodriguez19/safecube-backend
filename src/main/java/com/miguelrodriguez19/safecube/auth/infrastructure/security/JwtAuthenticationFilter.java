@@ -20,10 +20,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    public static final String BEARER = "Bearer ";
-    public static final String AUTHORIZATION_HEADER = "Authorization";
+  public static final String BEARER = "Bearer ";
+  public static final String AUTHORIZATION_HEADER = "Authorization";
 
-    private final JwtTokenParser tokenParser;
+  private final JwtTokenParser tokenParser;
 
   @Override
   protected void doFilterInternal(
@@ -37,17 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (header != null && header.startsWith(BEARER)) {
       final var token = header.substring(BEARER.length());
 
-      tokenParser.extractAccountId(token)
-          .ifPresent(accountId -> {
-            final var authentication =
-                new UsernamePasswordAuthenticationToken(
-                    accountId,
-                    null,
-                    List.of());
+      tokenParser
+          .extractAccountId(token)
+          .ifPresent(
+              accountId -> {
+                final var authentication =
+                    new UsernamePasswordAuthenticationToken(accountId, null, List.of());
 
-            SecurityContextHolder.getContext()
-                .setAuthentication(authentication);
-          });
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+              });
     }
 
     filterChain.doFilter(request, response);

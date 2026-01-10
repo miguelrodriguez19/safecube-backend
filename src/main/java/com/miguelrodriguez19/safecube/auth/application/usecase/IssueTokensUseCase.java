@@ -34,15 +34,8 @@ public class IssueTokensUseCase {
     final var refreshTokenId = UUID.randomUUID();
 
     refreshTokenRepository.save(
-        refreshTokenId,
-        accountId,
-        refreshTokenHash,
-        refreshTokenExpiresAt,
-        issuedAt
-    );
+        refreshTokenId, accountId, refreshTokenHash, refreshTokenExpiresAt, issuedAt);
 
-    return Result.success(
-        new IssuedTokensResult(accessToken, rawRefreshToken, issuedAt)
-    );
+    return Result.success(new IssuedTokensResult(accessToken, rawRefreshToken, issuedAt));
   }
 }
