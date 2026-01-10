@@ -18,6 +18,9 @@ services:
       DB_PWD: Safecube1234
       DB_URL: jdbc:postgresql://postgres:5432/safecube
       DB_DATABASE: safecube
+
+      JWT_SECRET: bEyD5M118jJHGUsCVEup8ZpSuOhQizha41ej8M3sqfvio
+      REFRESH_TOKEN_SECRET: OaUjW2Gec0ouSWDjvwrt3gMtoAeavYsRE5Y2K1ij7Ivtc
     working_dir: /app
     depends_on:
       - postgres
