@@ -509,6 +509,23 @@
                     </execution>
 
                     <execution>
+                        <id>wait-for-backend</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    until curl -sf http://localhost:8080/safecube/actuator/health; do sleep 1; done
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
                         <id>docker-down-after</id>
                         <phase>post-integration-test</phase>
                         <goals>
@@ -578,7 +595,6 @@
                 <skip.failsafe>false</skip.failsafe>
                 <skip.pitest>true</skip.pitest>
                 <skip.jacoco>true</skip.jacoco>
-                <skip.repackage>true</skip.repackage>
                 <skip.docker>false</skip.docker>
             </properties>
 
@@ -587,9 +603,15 @@
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <includes>
+                            <skipITs>false</skipITs>
+
+                            <!-- LIMPIAR includes anteriores -->
+                            <includes combine.self="override">
                                 <include>acceptance/**/*Test</include>
                             </includes>
+
+                            <!-- también limpiar excludes si existen -->
+                            <excludes combine.self="override"/>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -609,9 +631,7 @@
                 <!-- Disable everything else -->
                 <skip.surefire>true</skip.surefire>
                 <skip.failsafe>true</skip.failsafe>
-                <skip.docker>true</skip.docker>
                 <skip.jacoco>true</skip.jacoco>
-                <skip.repackage>true</skip.repackage>
             </properties>
         </profile>
     </profiles>
