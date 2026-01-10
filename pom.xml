@@ -68,8 +68,8 @@
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
-        <pitest.version>1.15.1</pitest.version>
-        <pitest.junit5.plugin.version>1.2.1</pitest.junit5.plugin.version>
+        <pitest.version>1.22.0</pitest.version>
+        <pitest.junit5.plugin.version>1.2.3</pitest.junit5.plugin.version>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
     </properties>
 
@@ -624,15 +624,70 @@
              ================================ -->
         <profile>
             <id>mutation</id>
+
             <properties>
                 <!-- Enable PIT -->
                 <skip.pitest>false</skip.pitest>
 
+                <!-- Unit tests MUST run for PIT -->
+                <skip.surefire>false</skip.surefire>
+
                 <!-- Disable everything else -->
-                <skip.surefire>true</skip.surefire>
                 <skip.failsafe>true</skip.failsafe>
                 <skip.jacoco>true</skip.jacoco>
+                <skip.docker>true</skip.docker>
             </properties>
+
+            <build>
+                <plugins>
+
+                    <!-- Disable Jacoco executions for this profile -->
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+
+                    <!-- PIT configuration override -->
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <configuration>
+
+                            <!-- Only mutate production code -->
+                            <targetClasses>
+                                <param>com.miguelrodriguez19.safecube.*</param>
+                            </targetClasses>
+
+                            <!-- Only run unit tests -->
+                            <targetTests>
+                                <param>unit.com.miguelrodriguez19.safecube.*</param>
+                            </targetTests>
+
+                            <threads>4</threads>
+
+                            <!-- Fail build if mutation score is too low -->
+                            <mutationThreshold>60</mutationThreshold>
+
+                            <!-- Avoid JVM crashes on modern Java -->
+                            <jvmArgs>
+                                <param>-Xmx1G</param>
+                                <param>--add-opens</param>
+                                <param>java.base/java.lang=ALL-UNNAMED</param>
+                                <param>--add-opens</param>
+                                <param>java.base/java.util=ALL-UNNAMED</param>
+                            </jvmArgs>
+
+                            <!-- Better diagnostics -->
+                            <verbose>true</verbose>
+
+                        </configuration>
+                    </plugin>
+
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
