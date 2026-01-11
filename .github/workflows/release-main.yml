@@ -29,26 +29,24 @@ jobs:
 
 
   ###########################################################################
-  # Release: Maven release + Docker build & push (GHCR)                     #
+  # Release: Git tag + Docker build & push (GHCR)                           #
   ###########################################################################
   release:
     name: 'Release artifacts'
     needs: ci-lite
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # create git commits + tags + GitHub Release
-      packages: write      # push image to GHCR
+      contents: write      # allow git tag push
+      packages: write      # allow GHCR push
 
     steps:
-      # Checkout with full history (required by Maven Release Plugin)
       - name: Checkout sources
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
 
-      # Configure Git identity for Maven Release Plugin commits
-      - name: Configure Git identity
+      - name: Set up Git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -58,25 +56,18 @@ jobs:
         with:
           java-version: 21
 
-      # -- Maven Release Plugin --
-      - name: Prepare Maven release
-        run: mvn -B release:prepare -DskipTests
-
-      - name: Perform Maven release
-        run: mvn -B release:perform -DskipTests
-
-      # -- Extract released version --
-      - name: Read released version
+      - name: Read and clean version from pom.xml
         id: version
         run: |
-          VERSION=$(mvn -q \
-            -Dexec.executable=echo \
-            -Dexec.args='${project.version}' \
-            --non-recursive \
-            org.codehaus.mojo:exec-maven-plugin:3.2.0:exec)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          RAW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          CLEAN_VERSION=${RAW_VERSION%-SNAPSHOT}
+          echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
 
-      # -- Authenticate to GitHub Container Registry --
+      - name: Create Git tag
+        run: |
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -84,7 +75,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # -- Docker build & push --
       - name: Build & push Docker image
         uses: docker/build-push-action@v5
         with:
