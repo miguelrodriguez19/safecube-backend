@@ -108,8 +108,10 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
           echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
 
-      - name: Authenticate Koyeb CLI
-        run: koyeb login --token ${{ secrets.KOYEB_API_TOKEN }}
+      - name: Authenticate Koyeb CLI (non-interactive)
+        run: |
+          mkdir -p ~/.koyeb
+          echo "c: ${{ secrets.KOYEB_API_TOKEN }}" > ~/.koyeb.yaml
 
       - name: Trigger redeploy on Koyeb
         run: koyeb service update selective-charil/safecube-backend \
