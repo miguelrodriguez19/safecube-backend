@@ -103,21 +103,17 @@ jobs:
     environment: production
 
     steps:
-      - name: Install Koyeb CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
-          echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
+    - name: Deploy on Koyeb
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+        export PATH="$HOME/.koyeb/bin:$PATH"
+        
+        koyeb service update selective-charil/safecube-backend \
+          --token "${{ secrets.KOYEB_API_TOKEN }}" \
+          --docker ghcr.io/${{ github.repository }}:latest \
+          --deployment-strategy immediate
 
-      - name: Authenticate Koyeb CLI (non-interactive)
-        run: |
-          mkdir -p ~/.koyeb
-          echo "c: ${{ secrets.KOYEB_API_TOKEN }}" > ~/.koyeb.yaml
 
-      - name: Trigger redeploy on Koyeb
-        run: |
-          koyeb service update selective-charil/safecube-backend \
-            --docker ghcr.io/${{ github.repository }}:latest \
-            --deployment-strategy immediate
 
 
 
