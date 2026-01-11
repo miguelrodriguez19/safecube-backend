@@ -114,8 +114,10 @@ jobs:
           echo "c: ${{ secrets.KOYEB_API_TOKEN }}" > ~/.koyeb.yaml
 
       - name: Trigger redeploy on Koyeb
-        run: koyeb service update selective-charil/safecube-backend \
-          --docker ghcr.io/${{ github.repository }}:latest \
-          --deployment-strategy immediate
+        run: |
+          koyeb service update selective-charil/safecube-backend \
+            --docker ghcr.io/${{ github.repository }}:latest \
+            --deployment-strategy immediate
+
 
 
