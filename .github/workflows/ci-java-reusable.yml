@@ -4,6 +4,14 @@ name: 'Java CI (reusable)'
 on:
   workflow_call:
     inputs:
+      run-acceptance-tests:
+        description: 'Run acceptance tests with -Pacceptance.'
+        type: boolean
+        default: true
+      run-mutation-tests:
+        description: 'Run mutation testing with -Pmutation.'
+        type: boolean
+        default: true
       run-version-check:
         description: 'Run the version-guard job (checks that the Maven version was bumped).'
         type: boolean
@@ -42,10 +50,17 @@ jobs:
       - name: Verify formatting with Spotless
         run: mvn -B spotless:check
 
-      - name: Build & acceptance tests
-        run: mvn -B verify -Pacceptance
+      - name: Build (optionally with -Pacceptance)
+        run: |
+          CMD="mvn -B verify"
+          if [ "${{ inputs.run-acceptance-tests }}" = "true" ]; then
+            CMD="$CMD -Pacceptance"
+          fi
+          echo "Running: $CMD"
+          eval "$CMD"
 
       - name: Mutation testing
+        if: ${{ inputs.run-mutation-tests }}
         run: mvn -B verify -Pmutation
 
       - name: Upload reports (JaCoCo / Spotless)
