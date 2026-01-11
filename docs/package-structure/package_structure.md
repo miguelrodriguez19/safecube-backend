@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 11-01-2026 12:10:30
+Updated: 12-01-2026 12:28:46
 
 ```
 safecube-backend/
@@ -207,6 +207,7 @@ safecube-backend/
 │           ├── application-jpa.yml
 │           ├── archunit.properties
 │           └── schema.sql
+├── .env.prod
 ├── .gitattributes
 ├── .gitignore
 ├── docker-compose.yml
