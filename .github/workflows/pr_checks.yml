@@ -44,10 +44,3 @@ jobs:
 
       - name: Check package_structure.md is up to date
         run: ./.github/scripts/check-package-structure.sh
-
-
-  ###################################################################
-  # Secret scanning                                                  #
-  ###################################################################
-  # GitHub native secret scanning (push protection) is enabled at
-  # repository level and does not require an explicit job here.
