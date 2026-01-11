@@ -26,6 +26,8 @@ jobs:
       run-version-check: true
       run-security-scan: false
       run-code-scan: false
+      run-acceptance-tests: false
+      run-mutation-tests: false
 
 
   ###########################################################################
@@ -103,14 +105,15 @@ jobs:
     steps:
       - name: Install Koyeb CLI
         run: |
-          if ! command -v koyeb &> /dev/null; then
-            curl -sL https://app.koyeb.com/static/cli/install.sh | bash
-          fi
+          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+          echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
 
       - name: Authenticate Koyeb CLI
-        run: koyeb auth login --token ${{ secrets.KOYEB_API_TOKEN }}
+        run: koyeb login --token ${{ secrets.KOYEB_API_TOKEN }}
 
       - name: Trigger redeploy on Koyeb
         run: koyeb service update selective-charil/safecube-backend \
-          --docker ghcr.io/${{ github.repository }}:latest
+          --docker ghcr.io/${{ github.repository }}:latest \
+          --deployment-strategy immediate
+
 
