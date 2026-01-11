@@ -92,14 +92,25 @@ jobs:
 
 
   ###########################################################################
-  # Deploy: manual approval → Render                                        #
+  # Deploy: manual approval → Koyeb                                         #
   ###########################################################################
-  deploy-render:
-    name: 'Deploy to Render'
+  deploy-production:
+    name: 'Deploy to Koyeb'
     needs: release
     runs-on: ubuntu-latest
     environment: production
 
     steps:
-      - name: Trigger Render deploy hook
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      - name: Install Koyeb CLI
+        run: |
+          if ! command -v koyeb &> /dev/null; then
+            curl -sL https://app.koyeb.com/static/cli/install.sh | bash
+          fi
+
+      - name: Authenticate Koyeb CLI
+        run: koyeb auth login --token ${{ secrets.KOYEB_API_TOKEN }}
+
+      - name: Trigger redeploy on Koyeb
+        run: koyeb service update selective-charil/safecube-backend \
+          --docker ghcr.io/${{ github.repository }}:latest
+
