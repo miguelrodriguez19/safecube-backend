@@ -57,6 +57,11 @@ jobs:
             **/target/site/jacoco
             **/target/spotless*
 
+      - name: Upload executable JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-jar
+          path: target/safecube-backend-executable.jar
 
   ###################################################################
   # 2. Version guard (optional)                                     #
