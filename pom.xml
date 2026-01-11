@@ -19,7 +19,7 @@
 
     <groupId>com.miguelrodriguez19.safecube</groupId>
     <artifactId>safecube-backend</artifactId>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.0.9-SNAPSHOT</version>
 
     <name>SafeCube Backend</name>
     <description>Core backend service for SafeCube</description>
@@ -41,8 +41,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/miguelrodriguez19/safecube-backend.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:miguelrodriguez19/safecube-backend.git</developerConnection>
+        <connection>scm:git:https://github.com/miguelrodriguez19/safecube-backend.git</connection>
+        <developerConnection>scm:git:https://github.com/miguelrodriguez19/safecube-backend.git</developerConnection>
         <url>https://github.com/miguelrodriguez19/safecube-backend</url>
         <tag>HEAD</tag>
     </scm>
