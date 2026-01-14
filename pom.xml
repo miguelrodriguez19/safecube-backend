@@ -50,6 +50,7 @@
     <properties>
         <spring-boot.version>4.0.1</spring-boot.version>
         <java.version>21</java.version>
+        <argLine>-XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
 
         <!-- execution flags -->
         <skip.surefire>false</skip.surefire>
