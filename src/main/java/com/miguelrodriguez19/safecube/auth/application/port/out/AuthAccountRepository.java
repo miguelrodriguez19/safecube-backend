@@ -2,6 +2,7 @@ package com.miguelrodriguez19.safecube.auth.application.port.out;
 
 import com.miguelrodriguez19.safecube.auth.domain.model.AuthAccount;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * AuthAccountRepository
@@ -38,4 +39,12 @@ public interface AuthAccountRepository {
    * @param account the account to persist
    */
   void save(final AuthAccount account);
+
+  /**
+   * Checks whether an authentication account exists for the given account identifier.
+   *
+   * @param accountId the account identifier
+   * @return {@code true} if the account exists, {@code false} otherwise
+   */
+  boolean existsByAccountId(final UUID accountId);
 }
