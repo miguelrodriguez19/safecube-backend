@@ -61,4 +61,17 @@ class JpaAuthAccountRepositoryAdapterIntegrationTest {
     // then
     assertThat(result).isEmpty();
   }
+
+  @Test
+  void shouldFindAccount_whenAccountExistsById() {
+    // given
+    final var account = AuthAccount.of("existsById@safecube.io", "hash", Instant.now());
+    target.save(account);
+
+    // when
+    final var exists = target.existsByAccountId(account.getAccountId());
+
+    // then
+    assertThat(exists).isTrue();
+  }
 }

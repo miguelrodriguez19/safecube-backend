@@ -5,6 +5,7 @@ import com.miguelrodriguez19.safecube.auth.domain.model.AuthAccount;
 import com.miguelrodriguez19.safecube.auth.infrastructure.persistence.jpa.AuthAccountJpaRepository;
 import com.miguelrodriguez19.safecube.auth.infrastructure.persistence.mapper.AuthAccountMapper;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -34,5 +35,10 @@ public class JpaAuthAccountRepositoryAdapter implements AuthAccountRepository {
   public void save(final AuthAccount account) {
     final var authAccountEntity = mapper.toEntity(account);
     jpaRepository.save(authAccountEntity);
+  }
+
+  @Override
+  public boolean existsByAccountId(final UUID accountId) {
+    return jpaRepository.findById(accountId).isPresent();
   }
 }

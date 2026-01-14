@@ -87,4 +87,27 @@ class JpaAuthAccountRepositoryAdapterTest {
 
     assertDoesNotThrow(() -> target.save(account));
   }
+
+  @Test
+  void shouldFindAccountById() {
+    final var accountId = UUID.randomUUID();
+
+    final var mockAccount = mock(AuthAccountJpaEntity.class);
+    when(jpaRepository.findById(accountId)).thenReturn(Optional.of(mockAccount));
+
+    final var result = target.existsByAccountId(accountId);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void shouldNotFindAccountById() {
+    final var accountId = UUID.randomUUID();
+
+    when(jpaRepository.findById(accountId)).thenReturn(Optional.empty());
+
+    final var result = target.existsByAccountId(accountId);
+
+    assertThat(result).isFalse();
+  }
 }
