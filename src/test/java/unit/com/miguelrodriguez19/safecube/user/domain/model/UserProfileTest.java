@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.miguelrodriguez19.safecube.user.domain.exception.InvalidDisplayNameException;
-import com.miguelrodriguez19.safecube.user.domain.exception.UserProfileDeletedException;
 import com.miguelrodriguez19.safecube.user.domain.model.UserProfile;
 import java.time.Instant;
 import java.util.UUID;
@@ -24,10 +23,9 @@ class UserProfileTest {
             UserProfile::getAccountId,
             UserProfile::getDisplayName,
             UserProfile::getCreatedAt,
-            UserProfile::getUpdatedAt,
-            UserProfile::getDeletedAt)
+            UserProfile::getUpdatedAt)
         .containsExactly(
-            profile.getUserId(), profile.getAccountId(), profile.getDisplayName(), now, now, null);
+            profile.getUserId(), profile.getAccountId(), profile.getDisplayName(), now, now);
   }
 
   @Test
@@ -36,8 +34,7 @@ class UserProfileTest {
     final var updatedAt = createdAt.plusSeconds(5);
 
     final var profile =
-        UserProfile.restore(
-            UUID.randomUUID(), UUID.randomUUID(), "John Doe", createdAt, updatedAt, null);
+        UserProfile.restore(UUID.randomUUID(), UUID.randomUUID(), "John Doe", createdAt, updatedAt);
 
     assertThat(profile)
         .extracting(
@@ -45,15 +42,13 @@ class UserProfileTest {
             UserProfile::getAccountId,
             UserProfile::getDisplayName,
             UserProfile::getCreatedAt,
-            UserProfile::getUpdatedAt,
-            UserProfile::getDeletedAt)
+            UserProfile::getUpdatedAt)
         .containsExactly(
             profile.getUserId(),
             profile.getAccountId(),
             profile.getDisplayName(),
             createdAt,
-            updatedAt,
-            null);
+            updatedAt);
   }
 
   @Test
@@ -68,44 +63,6 @@ class UserProfileTest {
 
     assertEquals(newDisplayName, profile.getDisplayName());
     assertEquals(later, profile.getUpdatedAt());
-  }
-
-  @Test
-  void shouldDeleteUserProfile() {
-    final var now = Instant.now();
-    final var later = now.plusSeconds(5);
-
-    final var profile = UserProfile.of(UUID.randomUUID(), UUID.randomUUID(), "John Doe", now);
-
-    profile.delete(later);
-
-    assertTrue(profile.isDeleted());
-    assertEquals(later, profile.getDeletedAt());
-    assertEquals(later, profile.getUpdatedAt());
-  }
-
-  @Test
-  void shouldNotAllowUpdate_whenProfileIsDeleted() {
-    final var now = Instant.now();
-
-    final var profile = UserProfile.of(UUID.randomUUID(), UUID.randomUUID(), "John Doe", now);
-
-    profile.delete(now.plusSeconds(5));
-
-    assertThrows(
-        UserProfileDeletedException.class,
-        () -> profile.updateDisplayName("John Miller", now.plusSeconds(10)));
-  }
-
-  @Test
-  void shouldNotAllowDeleteTwice() {
-    final var now = Instant.now();
-
-    final var profile = UserProfile.of(UUID.randomUUID(), UUID.randomUUID(), "John Doe", now);
-
-    profile.delete(now.plusSeconds(5));
-
-    assertThrows(UserProfileDeletedException.class, () -> profile.delete(now.plusSeconds(10)));
   }
 
   @Test

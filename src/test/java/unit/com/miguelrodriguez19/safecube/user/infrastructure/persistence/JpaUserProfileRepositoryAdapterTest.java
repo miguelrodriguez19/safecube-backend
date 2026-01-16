@@ -33,7 +33,7 @@ class JpaUserProfileRepositoryAdapterTest {
     final var createdAt = Instant.now();
 
     final var entity =
-        new UserProfileJpaEntity(userId, accountId, displayName, createdAt, createdAt, null);
+        new UserProfileJpaEntity(userId, accountId, displayName, createdAt, createdAt);
 
     when(jpaRepository.findByAccountId(accountId)).thenReturn(Optional.of(entity));
 

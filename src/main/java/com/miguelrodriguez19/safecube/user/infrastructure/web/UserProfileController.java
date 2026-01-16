@@ -1,14 +1,11 @@
 package com.miguelrodriguez19.safecube.user.infrastructure.web;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
-import com.miguelrodriguez19.safecube.shared.result.Void;
 import com.miguelrodriguez19.safecube.user.application.dto.CreateUserProfileCommand;
-import com.miguelrodriguez19.safecube.user.application.dto.DeleteUserProfileCommand;
 import com.miguelrodriguez19.safecube.user.application.dto.UpdateUserProfileCommand;
 import com.miguelrodriguez19.safecube.user.application.dto.UserProfileResponse;
 import com.miguelrodriguez19.safecube.user.application.error.UserError;
 import com.miguelrodriguez19.safecube.user.application.usecase.CreateUserProfileUseCase;
-import com.miguelrodriguez19.safecube.user.application.usecase.DeleteUserProfileUseCase;
 import com.miguelrodriguez19.safecube.user.application.usecase.GetUserProfileUseCase;
 import com.miguelrodriguez19.safecube.user.application.usecase.UpdateUserProfileUseCase;
 import com.miguelrodriguez19.safecube.user.infrastructure.web.dto.CreateUserProfileRequest;
@@ -37,7 +34,6 @@ public class UserProfileController {
   private final CreateUserProfileUseCase createUserProfileUseCase;
   private final GetUserProfileUseCase getUserProfileUseCase;
   private final UpdateUserProfileUseCase updateUserProfileUseCase;
-  private final DeleteUserProfileUseCase deleteUserProfileUseCase;
 
   private final Clock clock;
 
@@ -74,25 +70,8 @@ public class UserProfileController {
     return mapResult(result, HttpStatus.OK);
   }
 
-  @DeleteMapping
-  public ResponseEntity<Void> delete(@AuthenticationPrincipal final UUID accountId) {
-
-    final var result =
-        deleteUserProfileUseCase.execute(
-            new DeleteUserProfileCommand(accountId, Instant.now(clock)));
-
-    return switch (result) {
-      case Result.Success<Void, UserError> s -> ResponseEntity.noContent().build();
-
-      case Result.Failure<Void, UserError> f -> mapUserError(f.error().orElseThrow());
-    };
-  }
-
-  // ---- helpers ----
-
   private ResponseEntity<UserProfileResponse> mapResult(
       final Result<UserProfileResponse, UserError> result, final HttpStatus successStatus) {
-
     return switch (result) {
       case Result.Success<UserProfileResponse, UserError> s ->
           ResponseEntity.status(successStatus).body(s.success().orElseThrow());
@@ -104,11 +83,10 @@ public class UserProfileController {
 
   private <T> ResponseEntity<T> mapUserError(final UserError error) {
     return switch (error) {
+      case UserError.InvalidDisplayName e -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
       case UserError.UserProfileAlreadyExists e ->
           ResponseEntity.status(HttpStatus.CONFLICT).build();
-
       case UserError.UserProfileNotFound e -> ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
       case UserError.AccountNotFound e -> ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     };
   }

@@ -1,7 +1,6 @@
 package com.miguelrodriguez19.safecube.user.domain.model;
 
 import com.miguelrodriguez19.safecube.user.domain.exception.InvalidDisplayNameException;
-import com.miguelrodriguez19.safecube.user.domain.exception.UserProfileDeletedException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
@@ -20,21 +19,18 @@ public final class UserProfile {
   private String displayName;
   private final Instant createdAt;
   private Instant updatedAt;
-  private Instant deletedAt;
 
   private UserProfile(
       final UUID userId,
       final UUID accountId,
       final String displayName,
       final Instant createdAt,
-      final Instant updatedAt,
-      final Instant deletedAt) {
+      final Instant updatedAt) {
     this.userId = userId;
     this.accountId = accountId;
     this.displayName = displayName;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.deletedAt = deletedAt;
   }
 
   public static UserProfile of(
@@ -43,9 +39,9 @@ public final class UserProfile {
       @NotBlank final String displayName,
       @NotNull final Instant now) {
 
-    validateDisplayName(displayName);
+    final var validatedName = validateDisplayName(displayName);
 
-    return new UserProfile(userId, accountId, displayName, now, now, null);
+    return new UserProfile(userId, accountId, validatedName, now, now);
   }
 
   public static UserProfile restore(
@@ -53,38 +49,21 @@ public final class UserProfile {
       @NotNull final UUID accountId,
       @NotBlank final String displayName,
       @NotNull final Instant createdAt,
-      @NotNull final Instant updatedAt,
-      final Instant deletedAt) {
+      @NotNull final Instant updatedAt) {
 
-    return new UserProfile(userId, accountId, displayName, createdAt, updatedAt, deletedAt);
+    return new UserProfile(userId, accountId, displayName, createdAt, updatedAt);
   }
 
   public void updateDisplayName(@NotBlank final String newDisplayName, @NotNull final Instant now) {
-    assertNotDeleted();
-    this.displayName = newDisplayName;
+    this.displayName = validateDisplayName(newDisplayName);
     this.updatedAt = now;
-  }
-
-  public void delete(@NotNull final Instant now) {
-    assertNotDeleted();
-    this.deletedAt = now;
-    this.updatedAt = now;
-  }
-
-  public boolean isDeleted() {
-    return deletedAt != null;
-  }
-
-  private void assertNotDeleted() {
-    if (isDeleted()) {
-      throw new UserProfileDeletedException();
-    }
   }
 
   private static String validateDisplayName(final String name) {
-    if (name.length() > MAX_DISPLAY_NAME_LENGTH) {
+    final var trimmedName = name.trim();
+    if (trimmedName.length() > MAX_DISPLAY_NAME_LENGTH) {
       throw new InvalidDisplayNameException();
     }
-    return name;
+    return trimmedName;
   }
 }

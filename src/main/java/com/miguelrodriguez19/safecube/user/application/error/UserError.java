@@ -8,7 +8,8 @@ package com.miguelrodriguez19.safecube.user.application.error;
 public sealed interface UserError
     permits UserError.UserProfileAlreadyExists,
         UserError.AccountNotFound,
-        UserError.UserProfileNotFound {
+        UserError.UserProfileNotFound,
+        UserError.InvalidDisplayName {
 
   /** Returned when attempting to create a user profile that already exists. */
   record UserProfileAlreadyExists() implements UserError {}
@@ -18,4 +19,7 @@ public sealed interface UserError
 
   /** Returned when attempting to find an unexisting profile */
   record UserProfileNotFound() implements UserError {}
+
+  /** Returned when attempting to validate a UserProfile.displayName */
+  record InvalidDisplayName() implements UserError {}
 }

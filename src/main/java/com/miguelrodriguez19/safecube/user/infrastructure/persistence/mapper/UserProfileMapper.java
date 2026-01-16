@@ -18,8 +18,7 @@ public class UserProfileMapper {
         profile.getAccountId(),
         profile.getDisplayName(),
         profile.getCreatedAt(),
-        profile.getUpdatedAt(),
-        profile.getDeletedAt());
+        profile.getUpdatedAt());
   }
 
   public UserProfile toDomain(final UserProfileJpaEntity entity) {
@@ -28,7 +27,6 @@ public class UserProfileMapper {
         entity.getAccountId(),
         entity.getDisplayName(),
         entity.getCreatedAt(),
-        entity.getUpdatedAt(),
-        entity.getDeletedAt());
+        entity.getUpdatedAt());
   }
 }

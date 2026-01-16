@@ -36,6 +36,4 @@ public class UserProfileJpaEntity {
 
   @Column(nullable = false)
   private Instant updatedAt;
-
-  private Instant deletedAt;
 }

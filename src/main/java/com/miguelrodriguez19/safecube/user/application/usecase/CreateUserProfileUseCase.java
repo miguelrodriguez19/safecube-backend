@@ -7,6 +7,7 @@ import com.miguelrodriguez19.safecube.user.application.error.UserError;
 import com.miguelrodriguez19.safecube.user.application.mapper.UserProfileResponseMapper;
 import com.miguelrodriguez19.safecube.user.application.port.out.AccountExistencePort;
 import com.miguelrodriguez19.safecube.user.application.port.out.UserProfileRepository;
+import com.miguelrodriguez19.safecube.user.domain.exception.InvalidDisplayNameException;
 import com.miguelrodriguez19.safecube.user.domain.model.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -36,8 +37,14 @@ public class CreateUserProfileUseCase {
       return Result.failure(new UserError.UserProfileAlreadyExists());
     }
 
-    final var profile =
-        UserProfile.of(command.userId(), command.accountId(), command.displayName(), command.now());
+    final UserProfile profile;
+    try {
+      profile =
+          UserProfile.of(
+              command.userId(), command.accountId(), command.displayName(), command.now());
+    } catch (InvalidDisplayNameException e) {
+      return Result.failure(new UserError.InvalidDisplayName());
+    }
 
     repository.save(profile);
 
