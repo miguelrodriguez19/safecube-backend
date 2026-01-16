@@ -63,7 +63,6 @@
         <archunit.version>1.4.1</archunit.version>
         <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <google-java-format.version>1.21.0</google-java-format.version>
-        <jacoco.version>0.8.14</jacoco.version>
         <jjwt.version>0.13.0</jjwt.version>
         <karate.version>1.4.1</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
@@ -233,16 +232,6 @@
                     </configuration>
                 </plugin>
 
-                <!-- JaCoCo -->
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco.version}</version>
-                    <configuration>
-                        <excludes/>
-                    </configuration>
-                </plugin>
-
                 <!-- Surefire -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -354,50 +343,6 @@
                 </executions>
             </plugin>
 
-            <!-- JaCoCo -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>BUNDLE</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>LINE</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <!--<minimum>0.80</minimum>-->
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- PIT -->
             <plugin>
                 <groupId>org.pitest</groupId>
@@ -420,9 +365,13 @@
                 </executions>
                 <configuration>
                     <skip>${skip.pitest}</skip>
+
                     <targetClasses>
                         <param>com.miguelrodriguez19.safecube.*</param>
                     </targetClasses>
+                    <targetTests>
+                        <param>unit.com.miguelrodriguez19.safecube.*</param>
+                    </targetTests>
                     <excludedClasses>
                         <excludedClass>*Controller</excludedClass>
                         <excludedClass>*ExceptionHandler</excludedClass>
@@ -433,7 +382,18 @@
                     </excludedClasses>
 
                     <threads>4</threads>
+
                     <mutationThreshold>90</mutationThreshold>
+
+                    <jvmArgs>
+                        <param>-Xmx1G</param>
+                        <param>--add-opens</param>
+                        <param>java.base/java.lang=ALL-UNNAMED</param>
+                        <param>--add-opens</param>
+                        <param>java.base/java.util=ALL-UNNAMED</param>
+                    </jvmArgs>
+
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
 
@@ -641,7 +601,6 @@
                 <skip.surefire>true</skip.surefire>
                 <skip.failsafe>false</skip.failsafe>
                 <skip.pitest>true</skip.pitest>
-                <skip.jacoco>true</skip.jacoco>
                 <skip.docker>false</skip.docker>
             </properties>
 
@@ -681,60 +640,8 @@
 
                 <!-- Disable everything else -->
                 <skip.failsafe>true</skip.failsafe>
-                <skip.jacoco>true</skip.jacoco>
                 <skip.docker>true</skip.docker>
             </properties>
-
-            <build>
-                <plugins>
-
-                    <!-- Disable Jacoco executions for this profile -->
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-
-                    <!-- PIT configuration override -->
-                    <plugin>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-maven</artifactId>
-                        <configuration>
-
-                            <!-- Only mutate production code -->
-                            <targetClasses>
-                                <param>com.miguelrodriguez19.safecube.*</param>
-                            </targetClasses>
-
-                            <!-- Only run unit tests -->
-                            <targetTests>
-                                <param>unit.com.miguelrodriguez19.safecube.*</param>
-                            </targetTests>
-
-                            <threads>4</threads>
-
-                            <!-- Fail build if mutation score is too low -->
-                            <mutationThreshold>60</mutationThreshold>
-
-                            <!-- Avoid JVM crashes on modern Java -->
-                            <jvmArgs>
-                                <param>-Xmx1G</param>
-                                <param>--add-opens</param>
-                                <param>java.base/java.lang=ALL-UNNAMED</param>
-                                <param>--add-opens</param>
-                                <param>java.base/java.util=ALL-UNNAMED</param>
-                            </jvmArgs>
-
-                            <!-- Better diagnostics -->
-                            <verbose>true</verbose>
-
-                        </configuration>
-                    </plugin>
-
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>
