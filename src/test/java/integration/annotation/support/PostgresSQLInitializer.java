@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public class PostgresSQLInitializer
@@ -13,13 +13,13 @@ public class PostgresSQLInitializer
 
   private static final String POSTGRES_IMAGE = "postgres:17-alpine";
 
-  static PostgreSQLContainer<?> postgres;
+  private static PostgreSQLContainer postgres;
 
   @Override
   public void initialize(@NotNull final ConfigurableApplicationContext context) {
     if (Objects.isNull(postgres)) {
       postgres =
-          new PostgreSQLContainer<>(DockerImageName.parse(POSTGRES_IMAGE))
+          new PostgreSQLContainer(DockerImageName.parse(POSTGRES_IMAGE))
               .withDatabaseName("testdb")
               .withUsername("testuser")
               .withPassword("testpass")
