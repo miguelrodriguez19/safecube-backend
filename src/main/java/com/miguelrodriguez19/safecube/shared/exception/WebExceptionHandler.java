@@ -60,7 +60,7 @@ public class WebExceptionHandler {
   public ResponseEntity<Map<String, String>> handleUnexpected(final Exception ex) {
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(formatBody( "Unexpected error"));
+        .body(formatBody("Unexpected error"));
   }
 
   private Map<String, String> formatBody(final String message) {
