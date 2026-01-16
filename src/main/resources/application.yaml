@@ -36,3 +36,11 @@ security:
     secret: ${JWT_SECRET:change-me}
   refresh-token:
     secret: ${REFRESH_TOKEN_SECRET:change-me-refresh-secret}
+
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.springframework: ${LOG_LEVEL_SPRING:INFO}
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
