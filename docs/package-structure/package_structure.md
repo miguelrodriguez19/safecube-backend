@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 16-01-2026 06:49:23
+Updated: 16-01-2026 07:55:19
 
 ```
 safecube-backend/
@@ -25,10 +25,12 @@ safecube-backend/
 ├── docs/
 │   ├── architecture/
 │   │   ├── decisions/
-│   │   │   └── adr-001-auth-authentication-and-session.md
+│   │   │   ├── adr-001-auth-authentication-and-session.md
+│   │   │   └── adr-002-user-profile-lifecycle.md
 │   │   ├── tests/
 │   │   │   └── architecture_tests_safe_cube_backend.md
-│   │   │   │   └── safe_cube_backend_manifiesto_v_1.md
+│   │   │   │   ├── database_strategy.md
+│   │   └── safe_cube_backend_manifiesto_v_1.md
 │   ├── glossary/
 │   │   └── ubiquitous_glossary.md
 │   ├── package-structure/

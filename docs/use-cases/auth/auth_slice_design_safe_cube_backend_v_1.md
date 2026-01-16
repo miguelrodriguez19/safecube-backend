@@ -1,212 +1,355 @@
 # Auth Slice – Design & Token Strategy
-SafeCube Backend (v1)
 
-> Documento definitivo de **diseño funcional y de sesión** del slice **auth**.
+**SafeCube Backend (v1 · Definitivo)**
+
+> Documento **canónico** de diseño del slice **`auth`**.
 >
 > Define:
-> - los **casos de uso de autenticación**
-> - los **flujos de sesión basados en tokens**
-> - los **contratos observables del sistema**
 >
-> Este documento precede al código y debe mantenerse alineado con él.
+> * Casos de uso de autenticación
+> * Modelo de sesión basado en tokens
+> * Flujos soportados
+> * Decisiones cerradas de seguridad
+>
+> Este documento **describe el comportamiento observable del sistema**
+> y debe mantenerse sincronizado con el código.
 
 ---
 
-## 1. Objetivo
+## 1. Propósito del Slice `auth`
 
-Definir de forma clara y coherente cómo el backend de SafeCube:
+El slice `auth` es responsable de **identidad autenticable y gestión de sesiones**.
 
-- registra identidades autenticables,
-- autentica credenciales,
-- emite y renueva sesiones,
-- y permite su revocación,
+Gestiona:
 
-sin acoplar el dominio a mecanismos concretos de transporte o framework.
+* Registro de cuentas autenticables
+* Verificación de credenciales
+* Emisión y rotación de tokens
+* Revocación de sesiones
+
+No gestiona:
+
+* Perfil de usuario (slice `user`)
+* Datos cifrados (slice `vault`)
+* Datos de experiencia de usuario
+* Autorización de negocio
 
 ---
 
 ## 2. Principios de Diseño
 
-1. **Separación Autenticación vs Sesión**  
-   Verificar credenciales y gestionar sesiones son responsabilidades distintas.
+1. **Autenticación ≠ Sesión**
+   Verificar credenciales y gestionar sesiones son responsabilidades separadas.
 
-2. **Stateless First**  
-   El backend no mantiene estado de sesión en memoria.
+2. **Stateless first**
+   El backend no mantiene sesiones en memoria.
 
-3. **Contratos explícitos**  
-   Los casos de uso exponen DTOs de aplicación, no entidades ni DTOs web.
+3. **Tokens como contratos**
+   El cliente nunca recibe identidad ni entidades, solo tokens.
 
-4. **Errores esperados, no excepciones**  
-   Los fallos de negocio se modelan explícitamente.
+4. **Errores explícitos**
+   Los errores de negocio se modelan como resultados, no excepciones.
 
-5. **Evolución sin ruptura**  
-   El diseño permite evolucionar hacia OAuth/OIDC sin reescribir el dominio.
+5. **Infraestructura aislada**
+   Criptografía, JWT y persistencia viven fuera del dominio.
+
+6. **Evolución controlada**
+   El diseño permite migrar a OAuth / OIDC sin romper el dominio.
 
 ---
 
-## 3. Casos de Uso de Autenticación
+## 3. Modelo de Dominio
 
-### 3.1 RegisterAccountUseCase
+### 3.1 AuthAccount
+
+Representa una **identidad autenticable**.
+
+Propiedades relevantes:
+
+* `accountId`
+* `email`
+* `passwordHash`
+* `enabled`
+* `createdAt`
+* `disabledAt` (nullable)
+
+Notas:
+
+* El dominio **no conoce tokens**
+* El estado `enabled` controla la capacidad de autenticarse
+* La desactivación no elimina datos inmediatamente
+
+---
+
+## 4. Casos de Uso
+
+### 4.1 RegisterAccountUseCase
 
 #### Descripción
-Registra una nueva cuenta autenticable a partir de credenciales proporcionadas.
+
+Registra una nueva cuenta autenticable.
 
 #### Input
-- `RegisterAccountCommand`
-    - `email`
-    - `rawPassword`
+
+* `RegisterAccountCommand`
+
+    * `email`
+    * `rawPassword`
 
 #### Output
-- `RegisterAccountResult`
-    - `accountId`
-    - `createdAt`
+
+* `RegisterAccountResult`
+
+    * `accountId`
+    * `createdAt`
 
 #### Errores Esperados
-- `AccountAlreadyExists`
-- `InvalidCredentials`
+
+* `AccountAlreadyExists`
+* `InvalidCredentials`
 
 #### Reglas
-- Email único.
-- Password nunca persistido en claro.
-- La cuenta se crea habilitada.
+
+* Email único
+* Password nunca persistido en claro
+* La cuenta se crea habilitada
 
 ---
 
-### 3.2 AuthenticateAccountUseCase
+### 4.2 AuthenticateAccountUseCase
 
 #### Descripción
-Verifica las credenciales de una cuenta existente.
+
+Verifica credenciales de una cuenta existente.
 
 #### Input
-- `AuthenticateAccountCommand`
-    - `email`
-    - `rawPassword`
+
+* `AuthenticateAccountCommand`
+
+    * `email`
+    * `rawPassword`
 
 #### Output (interno)
-- `AuthenticateAccountResult`
-    - `accountId`
-    - `authenticatedAt`
 
-> **Nota importante**  
-> Este resultado **no se expone directamente a clientes externos**.
-> Se utiliza como paso interno en flujos de autenticación completos.
+* `AuthenticateAccountResult`
+
+    * `accountId`
+    * `authenticatedAt`
+
+> ⚠️ **Este resultado no se expone directamente al cliente.**
+> Se utiliza como paso interno del flujo de login.
 
 #### Errores Esperados
-- `AccountNotFound`
-- `InvalidCredentials`
-- `AccountDisabled`
+
+* `AccountNotFound`
+* `InvalidCredentials`
+* `AccountDisabled`
 
 ---
 
-## 4. Flujo de Autenticación (Login)
+### 4.3 IssueTokensUseCase
 
-El login expuesto por el backend **no corresponde a un único caso de uso**, sino a un **flujo compuesto**:
+#### Descripción
 
-1. Autenticación de credenciales  
-   → `AuthenticateAccountUseCase`
+Emite una nueva sesión autenticada (access + refresh token).
 
-2. Emisión de sesión  
-   → `IssueTokensUseCase`
+#### Input
 
-El cliente **no recibe la identidad**, sino credenciales derivadas (tokens).
+* `IssueTokensCommand`
+
+    * `accountId`
+    * `issuedAt`
+
+#### Output
+
+* `IssuedTokensResult`
+
+    * `accessToken`
+    * `refreshToken`
+    * `issuedAt`
 
 ---
 
-## 5. Modelo de Tokens (Fase 1)
+### 4.4 RefreshTokensUseCase
+
+#### Descripción
+
+Rota un refresh token válido y emite una nueva sesión.
+
+#### Input
+
+* `refreshTokenHash`
+* `newRawRefreshToken`
+* `newRefreshTokenHash`
+* `issuedAt`
+* `newRefreshTokenExpiresAt`
+
+#### Output
+
+* `IssuedTokensResult`
+
+#### Reglas
+
+* El refresh token debe existir
+* No debe estar revocado
+* No debe estar expirado
+* El token anterior se revoca
+* El refresh token **siempre rota**
+
+#### Errores Esperados
+
+* `InvalidCredentials`
+
+---
+
+### 4.5 LogoutUseCase
+
+#### Descripción
+
+Invalida todas las sesiones activas de una cuenta.
+
+#### Input
+
+* `accountId`
+* `revokedAt`
+
+#### Output
+
+* `void`
+
+#### Reglas
+
+* Se revocan todos los refresh tokens
+* Los access tokens expiran de forma natural
+
+---
+
+## 5. Modelo de Tokens
 
 ### 5.1 Access Token
 
-- Tipo: JWT
-- Uso: autorización de requests
-- Vida corta (10–15 min)
-- Transporte:  
-  `Authorization: Bearer <token>`
+* Tipo: JWT
+* Vida corta (~15 min)
+* Uso: autorización
+* Transporte:
+
+  ```
+  Authorization: Bearer <token>
+  ```
 
 Claims mínimos:
-- `sub` → `accountId`
-- `iat`
-- `exp`
+
+* `sub` → `accountId`
+* `iat`
+* `exp`
+
+Notas:
+
+* No se persiste
+* No es revocable individualmente
 
 ---
 
 ### 5.2 Refresh Token
 
-- Tipo: token opaco (UUID)
-- Vida larga (días / semanas)
-- Persistido en base de datos
-- Permite revocación
+* Tipo: token opaco (UUID)
+* Persistido en base de datos
+* Hashado con HMAC-SHA256
+* Vida larga
 
-Asociado a:
-- `accountId`
-- `issuedAt`
-- `expiresAt`
-- `revokedAt` (nullable)
+Propiedades:
+
+* `tokenId`
+* `accountId`
+* `tokenHash`
+* `expiresAt`
+* `createdAt`
+* `revokedAt` (nullable)
 
 ---
 
-## 6. Flujos de Sesión
+## 6. Flujos HTTP
 
-### 6.1 Login
-- POST `/auth/login`
-- Devuelve:
-    - `accessToken`
-    - `refreshToken`
-    - `issuedAt`
+### 6.1 Register
 
-### 6.2 Uso Normal
-- El cliente envía el access token en cada request.
-- El backend valida firma y expiración.
+`POST /auth/register`
+
+---
+
+### 6.2 Login
+
+`POST /auth/login`
+
+Flujo:
+
+1. AuthenticateAccountUseCase
+2. IssueTokensUseCase
+
+---
 
 ### 6.3 Refresh
-- POST `/auth/refresh`
-- Se valida el refresh token.
-- Se emite nuevo access token.
-- El refresh token se rota.
 
-### 6.4 Logout
-- POST `/auth/logout`
-- Se revocan los refresh tokens de la cuenta.
-- El access token expira de forma natural.
+`POST /auth/refresh`
+
+* Valida refresh token
+* Rota refresh token
+* Emite nueva sesión
 
 ---
 
-## 7. Persistencia de Refresh Tokens
+### 6.4 Logout
 
-### Reglas
-- Un refresh token pertenece a una sola cuenta.
-- Puede revocarse explícitamente.
-- Un token expirado no es reutilizable.
-- En Fase 1 puede limitarse a un token activo por cuenta.
+`POST /auth/logout`
+
+* Revoca todos los refresh tokens de la cuenta
+
+---
+
+## 7. Seguridad
+
+* Passwords: BCrypt
+* Refresh tokens: HMAC-SHA256
+* Secrets inyectados por configuración
+* Fallos criptográficos → `InfrastructureException`
+* Sin Open Session In View
 
 ---
 
 ## 8. Tests
 
-### 8.1 Application Tests
-- Validan casos de uso con dobles de test.
-- No usan HTTP ni infraestructura real.
+### 8.1 Unit Tests
 
-### 8.2 Acceptance Tests
-- Ejecutados con Karate.
-- Validan flujos completos:
-    - register
-    - login
-    - refresh
-    - logout
-- Validan contratos HTTP y códigos de estado.
+* Casos de uso con mocks
+* Cobertura de mutación (PiTest)
 
----
+### 8.2 Integration Tests
 
-## 9. Decisiones Cerradas (Fase 1)
+* Repositorios JPA
+* Testcontainers + PostgreSQL
+* Esquema único compartido
 
-- ✔️ Autenticación propia.
-- ✔️ Backend stateless.
-- ✔️ JWT solo para access token.
-- ✔️ Refresh tokens opacos y persistidos.
-- ✔️ Rotación y revocación.
-- ❌ OAuth / OIDC en Fase 1.
+### 8.3 Acceptance Tests
+
+* Karate
+* Contratos HTTP
+* Flujos reales completos
 
 ---
 
-*Este documento define el comportamiento observable y las decisiones clave del slice auth.
-Cualquier cambio relevante debe reflejarse aquí antes o junto con el código.*
+## 9. Decisiones Cerradas (v1)
+
+✔ Autenticación propia
+✔ Backend stateless
+✔ JWT solo para access token
+✔ Refresh tokens opacos y persistidos
+✔ Rotación obligatoria
+✔ Revocación explícita
+✔ Hashing HMAC con secret server-side
+
+❌ OAuth / OIDC (fase futura)
+❌ Soft-delete de auth accounts inmediato
+
+---
+
+**Este documento define el contrato del slice `auth`.
+Cualquier cambio funcional debe reflejarse aquí.**
