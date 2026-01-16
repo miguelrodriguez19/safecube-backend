@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 13-01-2026 02:18:16
+Updated: 16-01-2026 06:49:23
 
 ```
 safecube-backend/
@@ -17,8 +17,8 @@ safecube-backend/
 ├── .run/
 │   ├── [LOCAL] clean verify (acceptance).run.xml
 │   ├── [LOCAL] clean verify.run.xml
-│   ├── [LOCAL] verify acceptance (only).run.xml
-│   └── [LOCAL] verify mutationTests (piTest) (only).run.xml
+│   ├── [LOCAL] run acceptance (only).run.xml
+│   └── [LOCAL] run mutationTests (piTest) (only).run.xml
 ├── docker/
 │   └── postgres/
 │       └── init-schema.sql
@@ -89,6 +89,8 @@ safecube-backend/
 │   │   │               │   └── infrastructure/
 │   │   │               │       ├── crypto/
 │   │   │               │       │   └── BCryptPasswordHasher.java
+│   │   │               │       ├── exception/
+│   │   │               │       │   └── CryptoHashingException.java
 │   │   │               │       ├── persistence/
 │   │   │               │       │   ├── jpa/
 │   │   │               │       │   │   ├── AuthAccountJpaEntity.java
@@ -114,6 +116,7 @@ safecube-backend/
 │   │   │               ├── shared/
 │   │   │               │   ├── exception/
 │   │   │               │   │   ├── DomainException.java
+│   │   │               │   │   ├── InfrastructureException.java
 │   │   │               │   │   └── WebExceptionHandler.java
 │   │   │               │   ├── result/
 │   │   │               │   │   ├── Result.java
@@ -137,13 +140,11 @@ safecube-backend/
 │   │   │               │   │   │       └── UserProfileRepository.java
 │   │   │               │   │   └── usecase/
 │   │   │               │   │       ├── CreateUserProfileUseCase.java
-│   │   │               │   │       ├── DeleteUserProfileUseCase.java
 │   │   │               │   │       ├── GetUserProfileUseCase.java
 │   │   │               │   │       └── UpdateUserProfileUseCase.java
 │   │   │               │   ├── domain/
 │   │   │               │   │   ├── exception/
-│   │   │               │   │   │   ├── InvalidDisplayNameException.java
-│   │   │               │   │   │   └── UserProfileDeletedException.java
+│   │   │               │   │   │   └── InvalidDisplayNameException.java
 │   │   │               │   │   └── model/
 │   │   │               │   │       └── UserProfile.java
 │   │   │               │   └── infrastructure/
@@ -153,6 +154,7 @@ safecube-backend/
 │   │   │               │       │   │   └── UserProfileJpaRepository.java
 │   │   │               │       │   ├── mapper/
 │   │   │               │       │   │   └── UserProfileMapper.java
+│   │   │               │       │   ├── AccountExistenceAuthAdapter.java
 │   │   │               │       │   └── JpaUserProfileRepositoryAdapter.java
 │   │   │               │       └── web/
 │   │   │               │           ├── dto/
@@ -161,6 +163,7 @@ safecube-backend/
 │   │   │               │           └── UserProfileController.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
+│   │       ├── database/
 │   │       ├── static/
 │   │       ├── templates/
 │   │       └── application.yaml
@@ -188,7 +191,7 @@ safecube-backend/
 │       │   ├── integration/
 │       │   │   ├── annotation/
 │       │   │   │   ├── support/
-│       │   │   │   │   └── PostgreSQLInitializer.java
+│       │   │   │   │   └── PostgresSQLInitializer.java
 │       │   │   │   └── IntegrationTest.java
 │       │   │   └── com/
 │       │   │       └── miguelrodriguez19/
@@ -233,17 +236,21 @@ safecube-backend/
 │       │                   │           ├── JwtAuthenticationFilterTest.java
 │       │                   │           ├── JwtTokenParserTest.java
 │       │                   │           └── RefreshTokenHasherTest.java
+│       │                   ├── shared/
+│       │                   │   └── result/
+│       │                   │       └── ResultTest.java
 │       │                   └── user/
 │       │                       ├── application/
 │       │                       │   └── usecase/
 │       │                       │       ├── CreateUserProfileUseCaseTest.java
-│       │                       │       ├── DeleteUserProfileUseCaseTest.java
+│       │                       │       ├── GetUserProfileUseCaseTest.java
 │       │                       │       └── UpdateUserProfileUseCaseTest.java
 │       │                       ├── domain/
 │       │                       │   └── model/
 │       │                       │       └── UserProfileTest.java
 │       │                       └── infrastructure/
 │       │                           └── persistence/
+│       │                               ├── AccountExistenceAuthAdapterTest.java
 │       │                               └── JpaUserProfileRepositoryAdapterTest.java
 │       └── resources/
 │           ├── acceptance/
@@ -253,19 +260,26 @@ safecube-backend/
 │           │   │   │   ├── logout.feature
 │           │   │   │   ├── refresh.feature
 │           │   │   │   └── register.feature
+│           │   │   ├── user/
+│           │   │   │   ├── user-create.feature
+│           │   │   │   ├── user-get.feature
+│           │   │   │   ├── user-security.feature
+│           │   │   │   └── user-update.feature
 │           │   │   └── actuatorHealth.feature
 │           │   └── resources/
 │           │       ├── _helpers/
+│           │       │   ├── createUserHelper.feature
 │           │       │   ├── loginHelper.feature
 │           │       │   └── registerHelper.feature
 │           │       ├── config/
 │           │       │   └── karate-config.js
 │           │       └── js/
 │           │           └── utils.js
+│           ├── autogenerated/
+│           │   └── info.md
 │           ├── application-integration.yml
 │           ├── application-jpa.yml
-│           ├── archunit.properties
-│           └── schema.sql
+│           └── archunit.properties
 ├── .env.prod
 ├── .gitattributes
 ├── .gitignore
