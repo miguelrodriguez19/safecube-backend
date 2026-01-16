@@ -19,7 +19,7 @@
 
     <groupId>com.miguelrodriguez19.safecube</groupId>
     <artifactId>safecube-backend</artifactId>
-    <version>0.0.16-SNAPSHOT</version>
+    <version>0.0.17-SNAPSHOT</version>
 
     <name>SafeCube Backend</name>
     <description>Core backend service for SafeCube</description>
@@ -50,6 +50,7 @@
     <properties>
         <spring-boot.version>4.0.1</spring-boot.version>
         <java.version>21</java.version>
+        <argLine>-XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
 
         <!-- execution flags -->
         <skip.surefire>false</skip.surefire>
@@ -58,16 +59,17 @@
         <skip.pitest>true</skip.pitest>
 
         <!-- Explicit versions for non-Spring-managed dependencies -->
+        <antlr4-runtime.version>4.13.2</antlr4-runtime.version>
         <archunit.version>1.4.1</archunit.version>
         <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <google-java-format.version>1.21.0</google-java-format.version>
-        <jacoco.version>0.8.14</jacoco.version>
         <jjwt.version>0.13.0</jjwt.version>
         <karate.version>1.4.1</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <pitest.version>1.22.0</pitest.version>
         <pitest.junit5.plugin.version>1.2.3</pitest.junit5.plugin.version>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
@@ -149,6 +151,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- ANTRL -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>${antlr4-runtime.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!-- ======================= -->
         <!-- Testing & Quality       -->
@@ -219,16 +229,6 @@
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
                         <release>${java.version}</release>
-                    </configuration>
-                </plugin>
-
-                <!-- JaCoCo -->
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco.version}</version>
-                    <configuration>
-                        <excludes/>
                     </configuration>
                 </plugin>
 
@@ -343,50 +343,6 @@
                 </executions>
             </plugin>
 
-            <!-- JaCoCo -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>BUNDLE</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>LINE</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <!--<minimum>0.80</minimum>-->
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- PIT -->
             <plugin>
                 <groupId>org.pitest</groupId>
@@ -409,11 +365,35 @@
                 </executions>
                 <configuration>
                     <skip>${skip.pitest}</skip>
+
                     <targetClasses>
                         <param>com.miguelrodriguez19.safecube.*</param>
                     </targetClasses>
+                    <targetTests>
+                        <param>unit.com.miguelrodriguez19.safecube.*</param>
+                    </targetTests>
+                    <excludedClasses>
+                        <excludedClass>*Controller</excludedClass>
+                        <excludedClass>*ExceptionHandler</excludedClass>
+                        <excludedClass>*Config</excludedClass>
+                        <excludedClass>*Configuration</excludedClass>
+                        <excludedClass>*Mapper</excludedClass>
+                        <excludedClass>*Exception</excludedClass>
+                    </excludedClasses>
+
                     <threads>4</threads>
-                    <mutationThreshold>60</mutationThreshold>
+
+                    <mutationThreshold>90</mutationThreshold>
+
+                    <jvmArgs>
+                        <param>-Xmx1G</param>
+                        <param>--add-opens</param>
+                        <param>java.base/java.lang=ALL-UNNAMED</param>
+                        <param>--add-opens</param>
+                        <param>java.base/java.util=ALL-UNNAMED</param>
+                    </jvmArgs>
+
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
 
@@ -547,6 +527,33 @@
                 </executions>
             </plugin>
 
+            <!-- Copy resources to classpath -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-db-schema-for-tests</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.testOutputDirectory}/autogenerated</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>docker/postgres</directory>
+                                    <includes>
+                                        <include>init-schema.sql</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -594,7 +601,6 @@
                 <skip.surefire>true</skip.surefire>
                 <skip.failsafe>false</skip.failsafe>
                 <skip.pitest>true</skip.pitest>
-                <skip.jacoco>true</skip.jacoco>
                 <skip.docker>false</skip.docker>
             </properties>
 
@@ -605,13 +611,13 @@
                         <configuration>
                             <skipITs>false</skipITs>
 
-                            <!-- LIMPIAR includes anteriores -->
                             <includes combine.self="override">
                                 <include>acceptance/**/*Test</include>
                             </includes>
 
-                            <!-- también limpiar excludes si existen -->
-                            <excludes combine.self="override"/>
+                            <excludes combine.self="override">
+                                <exclude>integration/**/*IntegrationTest</exclude>
+                            </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -634,60 +640,8 @@
 
                 <!-- Disable everything else -->
                 <skip.failsafe>true</skip.failsafe>
-                <skip.jacoco>true</skip.jacoco>
                 <skip.docker>true</skip.docker>
             </properties>
-
-            <build>
-                <plugins>
-
-                    <!-- Disable Jacoco executions for this profile -->
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-
-                    <!-- PIT configuration override -->
-                    <plugin>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-maven</artifactId>
-                        <configuration>
-
-                            <!-- Only mutate production code -->
-                            <targetClasses>
-                                <param>com.miguelrodriguez19.safecube.*</param>
-                            </targetClasses>
-
-                            <!-- Only run unit tests -->
-                            <targetTests>
-                                <param>unit.com.miguelrodriguez19.safecube.*</param>
-                            </targetTests>
-
-                            <threads>4</threads>
-
-                            <!-- Fail build if mutation score is too low -->
-                            <mutationThreshold>60</mutationThreshold>
-
-                            <!-- Avoid JVM crashes on modern Java -->
-                            <jvmArgs>
-                                <param>-Xmx1G</param>
-                                <param>--add-opens</param>
-                                <param>java.base/java.lang=ALL-UNNAMED</param>
-                                <param>--add-opens</param>
-                                <param>java.base/java.util=ALL-UNNAMED</param>
-                            </jvmArgs>
-
-                            <!-- Better diagnostics -->
-                            <verbose>true</verbose>
-
-                        </configuration>
-                    </plugin>
-
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>

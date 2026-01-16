@@ -41,6 +41,32 @@ public class WebExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
   }
 
+  @ExceptionHandler(DomainException.class)
+  public ResponseEntity<Map<String, String>> handleDomainException(final DomainException ex) {
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(formatBody(ex.getMessage()));
+  }
+
+  @ExceptionHandler(InfrastructureException.class)
+  public ResponseEntity<Map<String, String>> handleInfrastructureException(
+      final InfrastructureException ex) {
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(formatBody("Internal server error"));
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<Map<String, String>> handleUnexpected(final Exception ex) {
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(formatBody("Unexpected error"));
+  }
+
+  private Map<String, String> formatBody(final String message) {
+    return Map.of("error", message);
+  }
+
   private String getDefaultErrorMessage(final FieldError fieldError) {
     if (fieldError.getDefaultMessage() == null) {
       return "Malformed request";

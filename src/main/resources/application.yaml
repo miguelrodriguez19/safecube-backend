@@ -3,6 +3,7 @@ server:
   servlet:
     context-path: /safecube
 
+
 spring:
   application:
     name: SafeCube Backend
@@ -20,6 +21,14 @@ spring:
       idle-timeout: 30000
       max-lifetime: 60000
 
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+
 security:
   jwt:
     issuer: safecube
@@ -27,3 +36,11 @@ security:
     secret: ${JWT_SECRET:change-me}
   refresh-token:
     secret: ${REFRESH_TOKEN_SECRET:change-me-refresh-secret}
+
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.springframework: ${LOG_LEVEL_SPRING:INFO}
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF

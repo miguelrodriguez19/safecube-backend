@@ -1,9 +1,11 @@
 package com.miguelrodriguez19.safecube.auth.infrastructure.security;
 
+import com.miguelrodriguez19.safecube.auth.infrastructure.exception.CryptoHashingException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,12 +25,15 @@ public class RefreshTokenHasher {
     this.secret = secret.getBytes(StandardCharsets.UTF_8);
   }
 
-  @SneakyThrows
   public String hash(final String rawToken) {
-    final Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-    mac.init(new SecretKeySpec(secret, HMAC_ALGORITHM));
-    final byte[] result = mac.doFinal(rawToken.getBytes(StandardCharsets.UTF_8));
-    return bytesToHex(result);
+    try {
+      final Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+      mac.init(new SecretKeySpec(secret, HMAC_ALGORITHM));
+      final byte[] result = mac.doFinal(rawToken.getBytes(StandardCharsets.UTF_8));
+      return bytesToHex(result);
+    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      throw new CryptoHashingException("Failed to hash token using " + HMAC_ALGORITHM, e);
+    }
   }
 
   private String bytesToHex(final byte[] bytes) {
