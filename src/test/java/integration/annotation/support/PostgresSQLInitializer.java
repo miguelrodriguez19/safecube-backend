@@ -8,7 +8,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-public class PostgreSQLInitializer
+public class PostgresSQLInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   private static final String POSTGRES_IMAGE = "postgres:17-alpine";

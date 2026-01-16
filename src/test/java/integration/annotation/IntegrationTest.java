@@ -1,7 +1,7 @@
 package integration.annotation;
 
 import com.miguelrodriguez19.safecube.SafeCubeBackendApplication;
-import integration.annotation.support.PostgreSQLInitializer;
+import integration.annotation.support.PostgresSQLInitializer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,7 +25,7 @@ public @interface IntegrationTest {
   Class<?>[] classes() default {SafeCubeBackendApplication.class};
 
   @AliasFor(annotation = ContextConfiguration.class, attribute = "initializers")
-  Class<?>[] initializers() default {PostgreSQLInitializer.class};
+  Class<?>[] initializers() default {PostgresSQLInitializer.class};
 
   @AliasFor(annotation = ActiveProfiles.class, attribute = "profiles")
   String[] profiles() default {"integration"};
