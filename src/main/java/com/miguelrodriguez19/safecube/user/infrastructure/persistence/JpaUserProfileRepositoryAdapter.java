@@ -22,6 +22,11 @@ public class JpaUserProfileRepositoryAdapter implements UserProfileRepository {
   private final UserProfileMapper mapper;
 
   @Override
+  public boolean existsByAccountId(UUID accountId) {
+    return jpaRepository.findByAccountId(accountId).isPresent();
+  }
+
+  @Override
   public Optional<UserProfile> findByAccountId(final UUID accountId) {
     return jpaRepository.findByAccountId(accountId).map(mapper::toDomain);
   }

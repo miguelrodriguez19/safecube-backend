@@ -19,9 +19,7 @@ public interface UserProfileRepository {
    * @param accountId the account identifier
    * @return {@code true} if a profile exists, {@code false} otherwise
    */
-  default boolean existsByAccountId(final UUID accountId) {
-    return findByAccountId(accountId).isPresent();
-  }
+  boolean existsByAccountId(final UUID accountId);
 
   /**
    * Retrieves a user profile by its associated account identifier.
