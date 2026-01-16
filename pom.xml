@@ -423,8 +423,17 @@
                     <targetClasses>
                         <param>com.miguelrodriguez19.safecube.*</param>
                     </targetClasses>
+                    <excludedClasses>
+                        <excludedClass>*Controller</excludedClass>
+                        <excludedClass>*ExceptionHandler</excludedClass>
+                        <excludedClass>*Config</excludedClass>
+                        <excludedClass>*Configuration</excludedClass>
+                        <excludedClass>*Mapper</excludedClass>
+                        <excludedClass>*Exception</excludedClass>
+                    </excludedClasses>
+
                     <threads>4</threads>
-                    <mutationThreshold>60</mutationThreshold>
+                    <mutationThreshold>90</mutationThreshold>
                 </configuration>
             </plugin>
 

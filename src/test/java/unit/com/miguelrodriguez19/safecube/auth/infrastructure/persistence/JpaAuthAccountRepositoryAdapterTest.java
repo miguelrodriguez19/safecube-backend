@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import unit.annotation.UnitTest;
@@ -34,14 +36,15 @@ class JpaAuthAccountRepositoryAdapterTest {
 
   @InjectMocks private JpaAuthAccountRepositoryAdapter target;
 
-  @Test
-  void shouldDelegateExistsByEmail() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldCheckExistsByEmail(final boolean expected) {
     final var email = "exists@safecube.io";
-    when(jpaRepository.existsByEmail(email)).thenReturn(true);
+    when(jpaRepository.existsByEmail(email)).thenReturn(expected);
 
     final var result = target.existsByEmail(email);
 
-    assertThat(result).isTrue();
+    assertThat(result).isEqualTo(expected);
     verify(jpaRepository).existsByEmail(email);
     verifyNoMoreInteractions(jpaRepository);
   }

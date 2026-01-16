@@ -1,15 +1,13 @@
 package unit.com.miguelrodriguez19.safecube.user.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.miguelrodriguez19.safecube.user.domain.model.UserProfile;
 import com.miguelrodriguez19.safecube.user.infrastructure.persistence.JpaUserProfileRepositoryAdapter;
 import com.miguelrodriguez19.safecube.user.infrastructure.persistence.jpa.UserProfileJpaEntity;
 import com.miguelrodriguez19.safecube.user.infrastructure.persistence.jpa.UserProfileJpaRepository;
 import com.miguelrodriguez19.safecube.user.infrastructure.persistence.mapper.UserProfileMapper;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -23,25 +21,67 @@ class JpaUserProfileRepositoryAdapterTest {
   @Mock private UserProfileJpaRepository jpaRepository;
   @Mock private UserProfileMapper mapper;
 
-  @InjectMocks private JpaUserProfileRepositoryAdapter adapter;
+  @InjectMocks private JpaUserProfileRepositoryAdapter target;
 
   @Test
-  void shouldFindUserProfileByAccountId() {
-    final var userId = UUID.randomUUID();
+  void shouldReturnTrue_whenProfileExists() {
     final var accountId = UUID.randomUUID();
-    final var displayName = "John";
-    final var createdAt = Instant.now();
 
-    final var entity =
-        new UserProfileJpaEntity(userId, accountId, displayName, createdAt, createdAt);
+    when(jpaRepository.findByAccountId(accountId))
+        .thenReturn(Optional.of(new UserProfileJpaEntity()));
+
+    final var result = target.existsByAccountId(accountId);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void shouldReturnFalse_whenProfileDoesNotExist() {
+    final var accountId = UUID.randomUUID();
+
+    when(jpaRepository.findByAccountId(accountId)).thenReturn(Optional.empty());
+
+    final var result = target.existsByAccountId(accountId);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void shouldReturnMappedDomain_whenEntityExists() {
+    final var accountId = UUID.randomUUID();
+
+    final var entity = new UserProfileJpaEntity();
+    final var domain = mock(UserProfile.class);
 
     when(jpaRepository.findByAccountId(accountId)).thenReturn(Optional.of(entity));
+    when(mapper.toDomain(entity)).thenReturn(domain);
 
-    final var mockUserProfile = mock(UserProfile.class);
-    when(mapper.toDomain(entity)).thenReturn(mockUserProfile);
+    final var result = target.findByAccountId(accountId);
 
-    final var result = adapter.findByAccountId(accountId);
+    assertThat(result).contains(domain);
+  }
 
-    assertThat(result).contains(mockUserProfile);
+  @Test
+  void shouldReturnEmpty_whenEntityDoesNotExist() {
+    final var accountId = UUID.randomUUID();
+
+    when(jpaRepository.findByAccountId(accountId)).thenReturn(Optional.empty());
+
+    final var result = target.findByAccountId(accountId);
+
+    assertThat(result).isEmpty();
+    verifyNoInteractions(mapper);
+  }
+
+  @Test
+  void shouldMapDomainAndPersistEntity() {
+    final var profile = mock(UserProfile.class);
+    final var entity = new UserProfileJpaEntity();
+
+    when(mapper.toEntity(profile)).thenReturn(entity);
+
+    target.save(profile);
+
+    verify(jpaRepository).save(entity);
   }
 }

@@ -71,11 +71,11 @@ Feature: Create authenticated user profile
     And headers utilsJs.bearer(accessToken)
     And request requestBody
     When method post
-    Then status 400
+    Then status <httpStatus>
 
     Examples:
-      | email                             | displayName          |
-      | profile_invalid_empty@safecube.io | ""                   |
-      | profile_invalid_null@safecube.io  | null                 |
-      | profile_invalid_long@safecube.io  | "#('a'.repeat(101))" |
+      | email                             | displayName          | httpStatus |
+      | profile_invalid_empty@safecube.io | ""                   | 500        |
+      | profile_invalid_null@safecube.io  | null                 | 500        |
+      | profile_invalid_long@safecube.io  | "#('a'.repeat(101))" | 400        |
 

@@ -55,6 +55,30 @@ class RefreshTokensUseCaseTest {
   }
 
   @Test
+  void shouldFail_whenRefreshTokenIsExpired() {
+    final var accountId = UUID.randomUUID();
+    final var tokenId = UUID.randomUUID();
+
+    final var issuedAt = Instant.now();
+
+    final var expiredToken =
+        new RefreshTokenRecord(tokenId, accountId, "expired-hash", issuedAt.minusSeconds(1), null);
+
+    when(refreshTokenRepository.findByTokenHash("expired-hash"))
+        .thenReturn(Optional.of(expiredToken));
+
+    final var result =
+        target.execute("expired-hash", "new-raw", "new-hash", issuedAt, issuedAt.plusSeconds(3600));
+
+    assertThat(result).isInstanceOf(Result.Failure.class);
+    assertThat(result.error()).containsInstanceOf(AuthError.InvalidCredentials.class);
+
+    verifyNoInteractions(accessTokenIssuer);
+    verify(refreshTokenRepository, never()).revoke(any(), any());
+    verify(refreshTokenRepository, never()).save(any(), any(), any(), any(), any());
+  }
+
+  @Test
   void shouldFail_whenRefreshTokenDoesNotExist() {
     when(refreshTokenRepository.findByTokenHash("missing")).thenReturn(Optional.empty());
 
