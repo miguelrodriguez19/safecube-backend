@@ -1,3 +1,20 @@
+-- =========================================================
+-- SAFE CUBE DATABASE SCHEMA
+--
+-- SOURCE OF TRUTH
+-- DO NOT DUPLICATE
+-- DO NOT MODIFY FROM TESTS OR MIGRATIONS
+--
+-- This file is used by:
+--  - Docker Compose (local dev & acceptance tests)
+--  - Testcontainers (via Maven copy)
+--
+-- This schema is used ONLY for:
+--  - local development via docker-compose
+--  - integration / acceptance tests via Testcontainers
+-- =========================================================
+
+
 CREATE TABLE IF NOT EXISTS auth_accounts (
     account_id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -27,15 +44,5 @@ create table if not exists user_profiles (
     account_id  uuid not null unique,
     display_name varchar(100) not null,
     created_at  timestamp with time zone not null,
-    updated_at  timestamp with time zone not null,
-    deleted_at  timestamp with time zone
-);
-
-create table if not exists user_profiles (
-    user_id     uuid primary key,
-    account_id  uuid not null unique,
-    display_name varchar(100) not null,
-    created_at  timestamp with time zone not null,
-    updated_at  timestamp with time zone not null,
-    deleted_at  timestamp with time zone
+    updated_at  timestamp with time zone not null
 );
