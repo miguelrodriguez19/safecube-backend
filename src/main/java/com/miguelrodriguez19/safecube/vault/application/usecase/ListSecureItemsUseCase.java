@@ -6,8 +6,8 @@ import com.miguelrodriguez19.safecube.vault.application.dto.result.ListSecureIte
 import com.miguelrodriguez19.safecube.vault.application.dto.result.ListSecureItemsResult.Item;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
+import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +31,7 @@ public class ListSecureItemsUseCase {
         allItems.stream()
             .filter(item -> isAfterSince(item, query.since()))
             .filter(item -> includeDeleted(item, query.includeDeleted()))
-            .sorted(Comparator.comparing(item -> item.getUpdatedAt()))
+            .sorted(Comparator.comparing(SecureItem::getUpdatedAt))
             .map(
                 item ->
                     new Item(
@@ -39,9 +39,10 @@ public class ListSecureItemsUseCase {
                         item.getItemType(),
                         item.getSchemaVersion(),
                         item.getDisplayHint(),
+                        item.getPayloadVersion(),
                         item.getUpdatedAt(),
                         item.getDeletedAt()))
-            .collect(Collectors.toList());
+            .toList();
 
     return Result.success(new ListSecureItemsResult(filteredItems));
   }

@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-/** Result of listing SecureItems for an account. */
+/** Result of listing SecureItems (without payload) for an account. */
 public record ListSecureItemsResult(List<Item> items) {
 
   public record Item(
@@ -13,6 +13,7 @@ public record ListSecureItemsResult(List<Item> items) {
       ItemType itemType,
       int schemaVersion,
       String displayHint,
+      long payloadVersion,
       Instant updatedAt,
       Instant deletedAt) {}
 }
