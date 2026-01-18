@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "userId")
 public final class UserProfile {
 
   private static final int MAX_DISPLAY_NAME_LENGTH = 100;
