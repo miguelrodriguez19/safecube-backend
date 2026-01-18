@@ -1,7 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.application.port.out;
 
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,10 +16,9 @@ public interface SecureItemRepository {
 
   SecureItem findByIdAndAccount(final UUID itemId, final UUID accountId);
 
-  List<SecureItem> listByAccount(
-      final UUID accountId, final Instant since, final boolean includeDeleted);
+  List<SecureItem> findByAccount(final UUID accountId);
 
   void update(final SecureItem secureItem);
 
-  void softDelete(final UUID itemId, final UUID accountId, final Instant deletedAt);
+  void softDelete(final UUID itemId, final UUID accountId, final java.time.Instant deletedAt);
 }

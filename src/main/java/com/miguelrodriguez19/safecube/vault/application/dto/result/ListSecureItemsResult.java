@@ -5,20 +5,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Result of listing SecureItems for an account.
- */
-public record ListSecureItemsResult(
-        List<Item> items
-) {
+/** Result of listing SecureItems for an account. */
+public record ListSecureItemsResult(List<Item> items) {
 
-    public record Item(
-            UUID itemId,
-            ItemType itemType,
-            int schemaVersion,
-            String displayHint,
-            Instant updatedAt,
-            Instant deletedAt
-    ) {
-    }
+  public record Item(
+      UUID itemId,
+      ItemType itemType,
+      int schemaVersion,
+      String displayHint,
+      Instant updatedAt,
+      Instant deletedAt) {}
 }
