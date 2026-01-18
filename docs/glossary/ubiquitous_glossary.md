@@ -1,6 +1,7 @@
 # SafeCube – Ubiquitous Language Glossary
 
-Este documento define el **lenguaje ubicuo** de SafeCube Backend. Los términos aquí recogidos deben usarse de forma **consistente** en documentación, código, casos de uso y conversaciones técnicas.
+Este documento define el **lenguaje ubicuo** de SafeCube Backend. Los términos aquí recogidos deben usarse de forma *
+*consistente** en documentación, código, casos de uso y conversaciones técnicas.
 
 El glosario se organiza en **grupos pequeños y localizados** por área funcional.
 
@@ -8,130 +9,159 @@ El glosario se organiza en **grupos pequeños y localizados** por área funciona
 
 ## Core / Principios
 
-**Zero‑Knowledge**  
-Propiedad del sistema por la cual el backend nunca puede acceder ni interpretar datos sensibles en claro; solo almacena blobs cifrados opacos.
+**Zero‑Knowledge**
+Propiedad del sistema por la cual el backend nunca puede acceder ni interpretar datos sensibles en claro; solo almacena
+blobs cifrados opacos. El backend no posee las llaves necesarias para descifrar el vault.
 
-**Client‑Centric Security**  
-Enfoque en el que todas las decisiones criptográficas (cifrado, descifrado, rotación de claves) pertenecen exclusivamente al cliente.
+**Client‑Centric Security**
+Enfoque en el que todas las operaciones criptográficas críticas (derivación de claves, cifrado, descifrado, rotación de
+claves) se ejecutan exclusivamente en el cliente.
 
-**Opaque Payload**  
-Contenido cifrado extremo a extremo cuyo significado es desconocido para el backend.
+**Opaque Payload**
+Contenido cifrado extremo a extremo cuyo significado y estructura son desconocidos para el backend.
 
 ---
 
 ## Identidad y Autenticación (auth)
 
-**Account**  
-Identidad autenticable dentro del sistema. Representa credenciales y estado de acceso, no información de perfil.
+**Account**
+Identidad autenticable dentro del sistema. Representa credenciales y estado de acceso, pero no información de perfil ni
+datos del vault.
 
-**AuthAccount**  
-Entidad de dominio que modela una cuenta autenticable gestionada por el slice `auth`.
+**AuthAccount**
+Entidad de dominio que modela una cuenta autenticable gestionada por el slice `auth`, incluyendo credenciales y estado
+de cuenta.
 
-**Authentication**  
+**Account State**
+Estado lógico de una cuenta autenticable que condiciona el acceso al sistema y al vault.
+
+Estados iniciales definidos:
+
+* `PENDING_VERIFICATION`
+* `ACTIVE`
+* `SUSPENDED`
+* `DISABLED`
+
+**Authentication**
 Proceso de verificación de credenciales que confirma la identidad de una cuenta.
 
-**Session**  
+**Session**
 Estado lógico que representa una autenticación válida en el tiempo, implementada mediante tokens.
 
-**Access Token**  
+**Access Token**
 Token de vida corta utilizado para autorizar requests autenticadas.
 
-**Refresh Token**  
+**Refresh Token**
 Token opaco de vida larga utilizado para renovar access tokens sin reautenticación.
 
 ---
 
 ## Perfil de Usuario (user)
 
-**User Profile**  
-Representación del perfil de usuario orientado a experiencia de uso, separado de autenticación y credenciales.
+**User Profile**
+Representación del perfil de usuario orientado a experiencia de uso, separada explícitamente de autenticación y
+credenciales.
 
-**UserProfile**  
+**UserProfile**
 Entidad que contiene información no sensible asociada a una cuenta autenticable.
 
-**Logical Deletion (User)**  
+**Logical Deletion (User)**
 Modelo de baja en el que el perfil se marca como eliminado sin borrado físico inmediato.
 
 ---
 
 ## Vault y Persistencia Segura (vault)
 
-**Vault**  
-Conjunto lógico de información cifrada perteneciente a una cuenta.
+**Vault**
+Conjunto lógico de información cifrada perteneciente a una cuenta `ACTIVE`. El vault solo puede inicializarse y abrirse
+cuando la cuenta está activa.
 
-**SecureItem**  
+**Vault Initialization**
+Proceso mediante el cual el cliente genera y envía al backend el material criptográfico inicial del vault (Vault Key
+cifrada y Recovery Key cifrada).
+
+**SecureItem**
 Unidad mínima de almacenamiento, cifrado, sincronización y versionado dentro del vault.
 
-**Item Payload**  
+**Item Payload**
 Blob cifrado que contiene la semántica completa del secreto.
 
-**Metadata (Vault)**  
-Información mínima, no sensible y en claro asociada a un SecureItem para soporte de UX y sincronización.
+**Metadata (Vault)**
+Información mínima, no sensible y en claro asociada a un SecureItem para soporte de UX, filtrado y sincronización.
 
-**Item Type**  
-Clasificación funcional cerrada usada solo para renderizado y organización visual.
+**Item Type**
+Clasificación funcional cerrada usada únicamente para organización visual y renderizado en cliente.
 
-**Schema Version**  
-Versión del esquema lógico del contenido cifrado, controlada por el cliente.
+**Schema Version**
+Versión del esquema lógico del contenido cifrado, controlada exclusivamente por el cliente.
 
-**Payload Version**  
-Contador técnico utilizado para control de concurrencia y sincronización.
+**Payload Version**
+Contador técnico incremental gestionado por el backend para control de concurrencia y sincronización.
 
-**Soft Delete (Item)**  
-Marcado lógico de un SecureItem como eliminado, preservando su trazabilidad para sincronización.
+**Soft Delete (Item)**
+Marcado lógico de un SecureItem como eliminado, preservando su trazabilidad para sincronización entre dispositivos.
 
 ---
 
 ## Organización (Vault – UX)
 
-**Group**  
-Entidad de organización visual que agrupa SecureItems sin afectar al cifrado.
+**Group**
+Entidad de organización visual que agrupa SecureItems sin afectar al cifrado ni a la semántica del payload.
 
-**Item–Group Relation**  
-Relación muchos‑a‑muchos entre SecureItems y Groups, independiente del payload cifrado.
+**Item–Group Relation**
+Relación muchos‑a‑muchos entre SecureItems y Groups, independiente del contenido cifrado.
 
 ---
 
 ## Criptografía (Vault Crypto)
 
-**Master Password**  
-Secreto conocido solo por el usuario, usado exclusivamente para derivar claves.
+**Passphrase / Master Password**
+Secreto conocido solo por el usuario. Se utiliza para autenticación (login) y para derivar claves criptográficas en
+cliente.
 
-**KEK (Key Encryption Key)**  
-Clave derivada de la Master Password utilizada para envolver la Vault Key.
+**Master Key (MASTER_KEY)**
+Clave derivada localmente en el cliente a partir de la passphrase mediante un KDF. Nunca se persiste ni se envía.
 
-**Vault Key (VK)**  
-Clave simétrica raíz del vault usada para envolver claves de items.
+**Vault Key (VK)**
+Clave simétrica raíz del vault. Se genera en el cliente, nunca se almacena en claro y se utiliza para envolver las
+claves de los items.
 
-**DEK (Data Encryption Key)**  
+**KEK (Key Encryption Key)**
+Término criptográfico equivalente a Vault Key. En SafeCube, KEK y Vault Key representan el mismo concepto.
+
+**DEK (Data Encryption Key)**
 Clave simétrica única por SecureItem utilizada para cifrar su payload.
 
-**Envelope Encryption**  
-Patrón criptográfico basado en envoltura jerárquica de claves.
+**Recovery Key**
+Clave secreta generada en cliente que permite recuperar la Vault Key en caso de pérdida de la passphrase. Nunca se envía
+al backend.
 
-**AEAD (Authenticated Encryption with Associated Data)**  
-Esquema de cifrado autenticado que garantiza confidencialidad e integridad.
+**Envelope Encryption**
+Patrón criptográfico basado en envoltura jerárquica de claves (Master Key → Vault Key → DEK → Payload).
+
+**AEAD (Authenticated Encryption with Associated Data)**
+Esquema de cifrado autenticado que garantiza confidencialidad e integridad del payload y su contexto.
 
 ---
 
 ## Arquitectura y Aplicación
 
-**Slice**  
-Unidad vertical de funcionalidad (auth, user, vault) con responsabilidades claramente delimitadas.
+**Slice**
+Unidad vertical de funcionalidad (`auth`, `user`, `vault`) con responsabilidades claramente delimitadas.
 
-**Use Case**  
+**Use Case**
 Representación explícita de una intención de aplicación, independiente de HTTP y frameworks.
 
-**Port**  
+**Port**
 Contrato definido por la capa de aplicación para acceder a infraestructura externa.
 
-**Adapter**  
+**Adapter**
 Implementación técnica concreta de un port (persistencia, web, seguridad).
 
-**Monolito Modular**  
+**Monolito Modular**
 Arquitectura donde el sistema se despliega como una unidad pero se organiza internamente por módulos bien aislados.
 
 ---
 
-Este glosario es **vivo** y debe evolucionar junto al modelo y los casos de uso. Cualquier término nuevo relevante debe añadirse aquí antes de introducirse en código o documentación.
-
+Este glosario es **vivo** y debe evolucionar junto al modelo y los casos de uso. Cualquier término nuevo relevante debe
+añadirse aquí antes de introducirse en código o documentación.
