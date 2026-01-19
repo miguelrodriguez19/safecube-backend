@@ -17,7 +17,7 @@ class RunAcceptanceTest {
             .configDir(CONFIG_PATH)
             .tags("@test", "~@disabled")
             .outputCucumberJson(true)
-            .parallel(1);
+            .parallel(4);
 
     assertEquals(0, results.getFailCount(), results.getErrorMessages());
   }
