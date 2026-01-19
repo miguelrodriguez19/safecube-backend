@@ -29,6 +29,7 @@ Feature: Create secure item helper
 
     When method post
     Then status 201
+    And print response
 
     # Expose useful values
     * def itemId = response.itemId
