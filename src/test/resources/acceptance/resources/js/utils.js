@@ -23,5 +23,12 @@ function fn() {
         return java.util.Base64.getEncoder().encodeToString(str.getBytes());
     };
 
+    /**
+     * Generate Instant.now()
+     */
+    utils.instantNow = function() {
+        return java.time.Instant.now(java.time.Clock.systemUTC()).toString();
+    };
+
     return utils;
 }
