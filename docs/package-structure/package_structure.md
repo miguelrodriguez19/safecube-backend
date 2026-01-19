@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 16-01-2026 07:55:19
+Updated: 19-01-2026 08:23:20
 
 ```
 safecube-backend/
@@ -26,7 +26,9 @@ safecube-backend/
 │   ├── architecture/
 │   │   ├── decisions/
 │   │   │   ├── adr-001-auth-authentication-and-session.md
-│   │   │   └── adr-002-user-profile-lifecycle.md
+│   │   │   ├── adr-002-user-profile-lifecycle.md
+│   │   │   ├── adr-003-account-deactivation-deferred-deletion.md
+│   │   │   └── adr_004_vault_data_crypto_recovery_strategy.md
 │   │   ├── tests/
 │   │   │   └── architecture_tests_safe_cube_backend.md
 │   │   │   │   ├── database_strategy.md
@@ -117,6 +119,8 @@ safecube-backend/
 │   │   │               │           └── AuthController.java
 │   │   │               ├── shared/
 │   │   │               │   ├── exception/
+│   │   │               │   │   ├── model/
+│   │   │               │   │   │   └── ErrorResponse.java
 │   │   │               │   │   ├── DomainException.java
 │   │   │               │   │   ├── InfrastructureException.java
 │   │   │               │   │   └── WebExceptionHandler.java
@@ -163,6 +167,72 @@ safecube-backend/
 │   │   │               │           │   ├── CreateUserProfileRequest.java
 │   │   │               │           │   └── UpdateUserProfileRequest.java
 │   │   │               │           └── UserProfileController.java
+│   │   │               ├── vault/
+│   │   │               │   ├── application/
+│   │   │               │   │   ├── dto/
+│   │   │               │   │   │   ├── command/
+│   │   │               │   │   │   │   ├── CreateSecureItemCommand.java
+│   │   │               │   │   │   │   ├── DeleteSecureItemCommand.java
+│   │   │               │   │   │   │   └── UpdateSecureItemCommand.java
+│   │   │               │   │   │   ├── query/
+│   │   │               │   │   │   │   ├── GetSecureItemQuery.java
+│   │   │               │   │   │   │   ├── ListSecureItemsFilter.java
+│   │   │               │   │   │   │   └── ListSecureItemsQuery.java
+│   │   │               │   │   │   ├── result/
+│   │   │               │   │   │   │   ├── CreateSecureItemResult.java
+│   │   │               │   │   │   │   ├── DeleteSecureItemResult.java
+│   │   │               │   │   │   │   ├── GetSecureItemResult.java
+│   │   │               │   │   │   │   ├── ListSecureItemsResult.java
+│   │   │               │   │   │   │   └── UpdateSecureItemResult.java
+│   │   │               │   │   │   └── ItemTypeDto.java
+│   │   │               │   │   ├── error/
+│   │   │               │   │   │   └── VaultError.java
+│   │   │               │   │   ├── mapper/
+│   │   │               │   │   │   └── ItemTypeMapper.java
+│   │   │               │   │   ├── port/
+│   │   │               │   │   │   └── out/
+│   │   │               │   │   │       └── SecureItemRepository.java
+│   │   │               │   │   └── usecase/
+│   │   │               │   │       ├── CreateSecureItemUseCase.java
+│   │   │               │   │       ├── DeleteSecureItemUseCase.java
+│   │   │               │   │       ├── GetSecureItemUseCase.java
+│   │   │               │   │       ├── ListSecureItemsUseCase.java
+│   │   │               │   │       └── UpdateSecureItemUseCase.java
+│   │   │               │   ├── domain/
+│   │   │               │   │   ├── exception/
+│   │   │               │   │   │   └── InvalidPayloadException.java
+│   │   │               │   │   └── model/
+│   │   │               │   │       ├── ItemType.java
+│   │   │               │   │       └── SecureItem.java
+│   │   │               │   └── infrastructure/
+│   │   │               │       ├── persistence/
+│   │   │               │       │   ├── jpa/
+│   │   │               │       │   │   ├── SecureItemJpaEntity.java
+│   │   │               │       │   │   └── SecureItemJpaRepository.java
+│   │   │               │       │   ├── mapper/
+│   │   │               │       │   │   └── SecureItemMapper.java
+│   │   │               │       │   ├── specification/
+│   │   │               │       │   │   └── SecureItemSpecifications.java
+│   │   │               │       │   └── JpaSecureItemRepositoryAdapter.java
+│   │   │               │       └── web/
+│   │   │               │           ├── dto/
+│   │   │               │           │   ├── request/
+│   │   │               │           │   │   ├── CreateSecureItemRequest.java
+│   │   │               │           │   │   ├── DeleteSecureItemRequest.java
+│   │   │               │           │   │   └── UpdateSecureItemRequest.java
+│   │   │               │           │   └── response/
+│   │   │               │           │       ├── ListSecureItemsResponse.java
+│   │   │               │           │       ├── SecureItemResponse.java
+│   │   │               │           │       └── SecureItemSummaryResponse.java
+│   │   │               │           ├── mapper/
+│   │   │               │           │   └── ListSecureItemsFilterMapper.java
+│   │   │               │           ├── validation/
+│   │   │               │           │   ├── annotation/
+│   │   │               │           │   │   ├── ValidItemType.java
+│   │   │               │           │   │   └── ValidOrder.java
+│   │   │               │           │   ├── ItemTypeValidator.java
+│   │   │               │           │   └── OrderValidator.java
+│   │   │               │           └── VaultController.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
 │   │       ├── database/
@@ -207,6 +277,10 @@ safecube-backend/
 │       │   │               │   └── infrastructure/
 │       │   │               │       └── persistence/
 │       │   │               │           └── JpaUserProfileRepositoryAdapterIntegrationTest.java
+│       │   │               ├── vault/
+│       │   │               │   └── infrastructure/
+│       │   │               │       └── persistence/
+│       │   │               │           └── JpaSecureItemRepositoryAdapterIntegrationTest.java
 │       │   │               └── SafeCubeBackendApplicationIntegrationTest.java
 │       │   └── unit/
 │       │       ├── annotation/
@@ -239,21 +313,46 @@ safecube-backend/
 │       │                   │           ├── JwtTokenParserTest.java
 │       │                   │           └── RefreshTokenHasherTest.java
 │       │                   ├── shared/
+│       │                   │   ├── exception/
+│       │                   │   │   └── model/
+│       │                   │   │       └── ErrorResponseTest.java
 │       │                   │   └── result/
 │       │                   │       └── ResultTest.java
-│       │                   └── user/
+│       │                   ├── user/
+│       │                   │   ├── application/
+│       │                   │   │   └── usecase/
+│       │                   │   │       ├── CreateUserProfileUseCaseTest.java
+│       │                   │   │       ├── GetUserProfileUseCaseTest.java
+│       │                   │   │       └── UpdateUserProfileUseCaseTest.java
+│       │                   │   ├── domain/
+│       │                   │   │   └── model/
+│       │                   │   │       └── UserProfileTest.java
+│       │                   │   └── infrastructure/
+│       │                   │       └── persistence/
+│       │                   │           ├── AccountExistenceAuthAdapterTest.java
+│       │                   │           └── JpaUserProfileRepositoryAdapterTest.java
+│       │                   └── vault/
 │       │                       ├── application/
+│       │                       │   ├── mapper/
+│       │                       │   │   └── ItemTypeMapperTest.java
 │       │                       │   └── usecase/
-│       │                       │       ├── CreateUserProfileUseCaseTest.java
-│       │                       │       ├── GetUserProfileUseCaseTest.java
-│       │                       │       └── UpdateUserProfileUseCaseTest.java
+│       │                       │       ├── CreateSecureItemUseCaseTest.java
+│       │                       │       ├── DeleteSecureItemUseCaseTest.java
+│       │                       │       ├── GetSecureItemUseCaseTest.java
+│       │                       │       ├── ListSecureItemsUseCaseTest.java
+│       │                       │       └── UpdateSecureItemUseCaseTest.java
 │       │                       ├── domain/
 │       │                       │   └── model/
-│       │                       │       └── UserProfileTest.java
+│       │                       │       └── SecureItemTest.java
 │       │                       └── infrastructure/
-│       │                           └── persistence/
-│       │                               ├── AccountExistenceAuthAdapterTest.java
-│       │                               └── JpaUserProfileRepositoryAdapterTest.java
+│       │                           ├── persistence/
+│       │                           │   ├── specification/
+│       │                           │   │   └── SecureItemSpecificationsTest.java
+│       │                           │   └── JpaSecureItemRepositoryAdapterTest.java
+│       │                           └── web/
+│       │                               └── validation/
+│       │                                   ├── ItemTypeValidatorTest.java
+│       │                                   └── OrderValidatorTest.java
 │       └── resources/
 │           ├── acceptance/
 │           │   ├── features/
@@ -267,9 +366,19 @@ safecube-backend/
 │           │   │   │   ├── user-get.feature
 │           │   │   │   ├── user-security.feature
 │           │   │   │   └── user-update.feature
-│           │   │   └── actuatorHealth.feature
+│           │   │   ├── vault/
+│           │   │   │   ├── secure-item-create.feature
+│           │   │   │   ├── secure-item-delete.feature
+│           │   │   │   ├── secure-item-get.feature
+│           │   │   │   ├── secure-item-list-filters.feature
+│           │   │   │   ├── secure-item-list-ordering.feature
+│           │   │   │   ├── secure-item-list.feature
+│           │   │   │   └── secure-item-update.feature
+│           │   │   ├── actuatorHealth.feature
+│           │   │   └── security.feature
 │           │   └── resources/
 │           │       ├── _helpers/
+│           │       │   ├── createSecureItemHelper.feature
 │           │       │   ├── createUserHelper.feature
 │           │       │   ├── loginHelper.feature
 │           │       │   └── registerHelper.feature

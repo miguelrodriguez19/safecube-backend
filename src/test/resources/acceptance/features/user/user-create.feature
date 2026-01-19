@@ -7,7 +7,7 @@ Feature: Create authenticated user profile
 
 
   Scenario: Create user profile successfully
-    * def email = 'profile_create@safecube.io'
+    * def email = utilsJs.randomEmail('profile_create')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -32,7 +32,7 @@ Feature: Create authenticated user profile
 
 
   Scenario: Creating user profile twice fails
-    * def email = 'profile_duplicate@safecube.io'
+    * def email = utilsJs.randomEmail('profile_duplicate')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -53,7 +53,7 @@ Feature: Create authenticated user profile
 
 
   Scenario Outline: Creating user profile with invalid display name fails
-    * def email = '<email>'
+    * def email = utilsJs.randomEmail('<email>')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -71,11 +71,11 @@ Feature: Create authenticated user profile
     And headers utilsJs.bearer(accessToken)
     And request requestBody
     When method post
-    Then status <httpStatus>
+    Then status 400
 
     Examples:
-      | email                             | displayName          | httpStatus |
-      | profile_invalid_empty@safecube.io | ""                   | 500        |
-      | profile_invalid_null@safecube.io  | null                 | 500        |
-      | profile_invalid_long@safecube.io  | "#('a'.repeat(101))" | 400        |
+      | email                 | displayName          |
+      | profile_invalid_empty | ""                   |
+      | profile_invalid_null  | null                 |
+      | profile_invalid_long  | "#('a'.repeat(101))" |
 

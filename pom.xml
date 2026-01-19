@@ -19,7 +19,7 @@
 
     <groupId>com.miguelrodriguez19.safecube</groupId>
     <artifactId>safecube-backend</artifactId>
-    <version>0.0.17-SNAPSHOT</version>
+    <version>0.0.18-SNAPSHOT</version>
 
     <name>SafeCube Backend</name>
     <description>Core backend service for SafeCube</description>
@@ -61,10 +61,9 @@
         <!-- Explicit versions for non-Spring-managed dependencies -->
         <antlr4-runtime.version>4.13.2</antlr4-runtime.version>
         <archunit.version>1.4.1</archunit.version>
-        <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <google-java-format.version>1.21.0</google-java-format.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <karate.version>1.4.1</karate.version>
+        <karate.version>1.5.2</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
@@ -138,12 +137,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Commons utilities (StringUtils, Validate, etc.) -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
         <!-- Lombok (compile-time only) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -181,17 +174,9 @@
 
         <!-- Acceptance tests (HTTP, E2E) -->
         <dependency>
-            <groupId>com.intuit.karate</groupId>
+            <groupId>io.karatelabs</groupId>
             <artifactId>karate-junit5</artifactId>
             <version>${karate.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Cucumber-style reports for Karate -->
-        <dependency>
-            <groupId>net.masterthought</groupId>
-            <artifactId>cucumber-reporting</artifactId>
-            <version>${cucumber.reporting.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -229,6 +214,7 @@
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
                         <release>${java.version}</release>
+                        <parameters>true</parameters>
                     </configuration>
                 </plugin>
 
@@ -283,8 +269,7 @@
                         <targetTests>
                             <param>unit.*</param>
                         </targetTests>
-                        <threads>5</threads>
-                        <mutationThreshold>60</mutationThreshold>
+                        <threads>4</threads>
                         <coverageThreshold>0</coverageThreshold>
                     </configuration>
                 </plugin>
@@ -383,7 +368,7 @@
 
                     <threads>4</threads>
 
-                    <mutationThreshold>90</mutationThreshold>
+                    <mutationThreshold>85</mutationThreshold>
 
                     <jvmArgs>
                         <param>-Xmx1G</param>

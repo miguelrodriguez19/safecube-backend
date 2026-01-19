@@ -7,7 +7,7 @@ Feature: Refresh access tokens
 
 
   Scenario: Refresh token rotates tokens successfully
-    * def email = 'refresh@safecube.io'
+   * def email = utilsJs.randomEmail('refresh')
     * def password = 'password123'
     * def rq = { email: '#(email)', password: '#(password)' }
 

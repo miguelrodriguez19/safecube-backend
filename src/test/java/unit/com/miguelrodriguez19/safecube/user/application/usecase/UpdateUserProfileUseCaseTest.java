@@ -1,7 +1,10 @@
 package unit.com.miguelrodriguez19.safecube.user.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +19,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import unit.annotation.UnitTest;
@@ -45,6 +49,15 @@ class UpdateUserProfileUseCaseTest {
     final var command = getUpdateUserProfileCommand(accountId, now);
     final var result = target.execute(command);
 
+    final var userProfileCaptor = ArgumentCaptor.forClass(UserProfile.class);
+    verify(repository).save(userProfileCaptor.capture());
+
+    final var userProfile = userProfileCaptor.getValue();
+    assertThat(userProfile)
+        .extracting(
+            UserProfile::getAccountId, UserProfile::getDisplayName, UserProfile::getUpdatedAt)
+        .containsExactly(accountId, command.displayName(), command.updatedAt());
+
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.success()).contains(mockUserProfileResponse);
   }
@@ -63,6 +76,7 @@ class UpdateUserProfileUseCaseTest {
     assertThat(result.isFailure()).isTrue();
     assertThat(result.error()).containsInstanceOf(UserError.UserProfileNotFound.class);
 
+    verify(repository, never()).save(any(UserProfile.class));
     verifyNoInteractions(mapper);
   }
 

@@ -7,7 +7,7 @@ Feature: Retrieve authenticated user profile
 
 
   Scenario: Get existing user profile
-    * def email = 'profile_get@safecube.io'
+   * def email = utilsJs.randomEmail('profile_get')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -30,7 +30,7 @@ Feature: Retrieve authenticated user profile
 
 
   Scenario: Get user profile when none exists
-    * def email = 'profile_get_missing@safecube.io'
+   * def email = utilsJs.randomEmail('profile_get_missing')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
