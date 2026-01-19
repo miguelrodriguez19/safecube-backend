@@ -21,7 +21,7 @@ public class ListSecureItemsFilterMapper {
       final Set<String> labels,
       final boolean includeDeleted,
       final Integer limit,
-      final Order order) {
+      final String order) {
 
     return new ListSecureItemsFilter(
         since,
@@ -29,6 +29,7 @@ public class ListSecureItemsFilterMapper {
         labels,
         includeDeleted,
         limit,
-        order);
+        order != null ? Order.valueOf(order) : null);
   }
+
 }

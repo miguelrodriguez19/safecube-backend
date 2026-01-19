@@ -6,7 +6,6 @@ import com.miguelrodriguez19.safecube.vault.application.dto.command.CreateSecure
 import com.miguelrodriguez19.safecube.vault.application.dto.command.DeleteSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.UpdateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.GetSecureItemQuery;
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsQuery;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.CreateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.DeleteSecureItemResult;
@@ -26,6 +25,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.Secu
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemSummaryResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper.ListSecureItemsFilterMapper;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidItemType;
+import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidOrder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.time.Clock;
@@ -122,7 +122,8 @@ public class VaultController {
       @RequestParam(required = false) final Set<String> labels,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
       @RequestParam(required = false) @Positive final Integer limit,
-      @RequestParam(required = false, defaultValue = "DISPLAY_NAME_ASC") final Order order) {
+      @RequestParam(required = false, defaultValue = "DISPLAY_NAME_ASC") @ValidOrder
+          final String order) {
 
     final var filters = filterMapper.from(since, type, labels, includeDeleted, limit, order);
 
