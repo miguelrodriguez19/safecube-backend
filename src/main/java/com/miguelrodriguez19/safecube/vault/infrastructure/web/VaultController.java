@@ -27,6 +27,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.Secu
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemSummaryResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper.ListSecureItemsFilterMapper;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Set;
@@ -118,7 +119,7 @@ public class VaultController {
       @RequestParam(required = false) final ItemTypeDto type,
       @RequestParam(required = false) final Set<String> labels,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
-      @RequestParam(required = false) final Integer limit,
+      @RequestParam(required = false) @Positive final Integer limit,
       @RequestParam(required = false, defaultValue = "DISPLAY_NAME_ASC") final Order order) {
 
     final var filters = filterMapper.from(since, type, labels, includeDeleted, limit, order);
