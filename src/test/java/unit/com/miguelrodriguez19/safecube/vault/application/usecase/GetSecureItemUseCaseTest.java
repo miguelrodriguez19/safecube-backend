@@ -3,9 +3,11 @@ package unit.com.miguelrodriguez19.safecube.vault.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.GetSecureItemQuery;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.GetSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.GetSecureItemUseCase;
 import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
@@ -21,6 +23,7 @@ import unit.annotation.UnitTest;
 class GetSecureItemUseCaseTest {
 
   @Mock SecureItemRepository secureItemRepository;
+  @Mock ItemTypeMapper itemTypeMapper;
 
   @InjectMocks private GetSecureItemUseCase target;
 
@@ -48,6 +51,9 @@ class GetSecureItemUseCaseTest {
 
     when(secureItemRepository.findByIdAndAccount(itemId, accountId)).thenReturn(persistedItem);
 
+    final var mappedItemType = ItemTypeDto.PASSWORD;
+    when(itemTypeMapper.toDto(persistedItem.getItemType())).thenReturn(mappedItemType);
+
     final var result = target.execute(getGetSecureItemQuery(accountId, itemId));
 
     assertThat(result.isSuccess()).isTrue();
@@ -60,7 +66,7 @@ class GetSecureItemUseCaseTest {
             GetSecureItemResult::payloadVersion,
             GetSecureItemResult::updatedAt,
             GetSecureItemResult::deletedAt)
-        .containsExactly(itemId, ItemType.PASSWORD, 1, "GitHub", payloadVersion, updatedAt, null);
+        .containsExactly(itemId, mappedItemType, 1, "GitHub", payloadVersion, updatedAt, null);
 
     assertThat(result.success().get().payload()).isEqualTo(payload);
   }

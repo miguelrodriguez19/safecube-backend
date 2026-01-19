@@ -2,10 +2,14 @@ package integration.com.miguelrodriguez19.safecube.vault.infrastructure.persiste
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
 import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaSecureItemRepositoryAdapter;
 import integration.annotation.IntegrationTest;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @IntegrationTest(profiles = {"jpa"})
 class JpaSecureItemRepositoryAdapterIntegrationTest {
 
-  @Autowired
-  private com.miguelrodriguez19.safecube.vault.infrastructure.persistence
-          .JpaSecureItemRepositoryAdapter
-      target;
+  @Autowired private JpaSecureItemRepositoryAdapter target;
 
   @Test
   void shouldPersistAndRetrieveSecureItemByIdAndAccount() {
@@ -53,6 +54,8 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
   void shouldListAllItemsByAccount_includingDeleted() {
     final var now = Instant.now();
     final var accountId = UUID.randomUUID();
+    final var filters =
+        new ListSecureItemsFilter(null, null, Set.of(), false, 100, Order.DISPLAY_NAME_ASC);
 
     final var first =
         SecureItem.of(
@@ -77,7 +80,7 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
     target.save(first);
     target.save(second);
 
-    final var listed = target.findByAccount(accountId);
+    final var listed = target.findFilteredByAccount(accountId, filters);
 
     assertThat(listed).hasSize(2);
     assertThat(listed)

@@ -1,6 +1,5 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response;
 
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -11,10 +10,9 @@ import java.util.UUID;
  */
 public record SecureItemSummaryResponse(
     UUID itemId,
-    ItemType itemType,
+    String itemType,
     int schemaVersion,
     String displayHint,
     long payloadVersion,
     Instant updatedAt,
-    Instant deletedAt
-) {}
+    Instant deletedAt) {}

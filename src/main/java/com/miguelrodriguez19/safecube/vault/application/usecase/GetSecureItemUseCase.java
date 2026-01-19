@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.shared.result.Result;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.GetSecureItemQuery;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.GetSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class GetSecureItemUseCase {
 
   private final SecureItemRepository secureItemRepository;
+  private final ItemTypeMapper itemTypeMapper;
 
   public Result<GetSecureItemResult, VaultError> execute(final GetSecureItemQuery query) {
     final var secureItem =
@@ -31,7 +33,7 @@ public class GetSecureItemUseCase {
     return Result.success(
         new GetSecureItemResult(
             secureItem.getItemId(),
-            secureItem.getItemType(),
+            itemTypeMapper.toDto(secureItem.getItemType()),
             secureItem.getSchemaVersion(),
             secureItem.getDisplayHint(),
             secureItem.getPayload(),

@@ -8,8 +8,4 @@ import java.time.Instant;
  *
  * <p>HTTP request payload for soft-deleting a SecureItem.
  */
-public record DeleteSecureItemRequest(
-
-    @NotNull
-    Instant deletedAt
-) {}
+public record DeleteSecureItemRequest(@NotNull Instant deletedAt) {}

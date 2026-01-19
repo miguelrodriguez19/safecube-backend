@@ -1,9 +1,12 @@
 package unit.com.miguelrodriguez19.safecube.vault.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaSecureItemRepositoryAdapter;
@@ -13,10 +16,14 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.mapper.Se
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import unit.annotation.UnitTest;
 
 @UnitTest
@@ -30,6 +37,7 @@ class JpaSecureItemRepositoryAdapterTest {
   @Test
   void shouldSaveSecureItem() {
     final var now = Instant.now();
+
     final var domainItem =
         SecureItem.of(
             UUID.randomUUID(),
@@ -117,8 +125,9 @@ class JpaSecureItemRepositoryAdapterTest {
   }
 
   @Test
-  void shouldFindAllItemsByAccount() {
+  void shouldFindItemsByAccountUsingFilter() {
     final var accountId = UUID.randomUUID();
+    final var filter = getFilter(ItemTypeDto.PASSWORD);
 
     final var entity =
         new SecureItemJpaEntity(
@@ -146,15 +155,18 @@ class JpaSecureItemRepositoryAdapterTest {
             entity.getUpdatedAt(),
             null);
 
-    when(jpaRepository.findAllByAccountId(accountId)).thenReturn(List.of(entity));
+    final var entitiesPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(entitiesPage);
+
     when(mapper.toDomain(entity)).thenReturn(domainItem);
 
-    final var result = target.findByAccount(accountId);
+    final var result = target.findFilteredByAccount(accountId, filter);
 
     assertThat(result).hasSize(1);
     assertThat(result.getFirst().getItemId()).isEqualTo(entity.getItemId());
 
-    verify(jpaRepository).findAllByAccountId(accountId);
+    verify(jpaRepository).findAll(any(Specification.class), any(Pageable.class));
     verify(mapper).toDomain(entity);
   }
 
@@ -202,5 +214,10 @@ class JpaSecureItemRepositoryAdapterTest {
 
     verify(mapper).toEntity(domainItem);
     verify(jpaRepository).save(entity);
+  }
+
+  private ListSecureItemsFilter getFilter(final ItemTypeDto type) {
+    return new ListSecureItemsFilter(
+        null, type, Set.of(), false, 100, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
   }
 }

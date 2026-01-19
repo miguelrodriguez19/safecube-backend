@@ -1,42 +1,37 @@
 package com.miguelrodriguez19.safecube.vault.application.usecase;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsQuery;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.ListSecureItemsResult;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.ListSecureItemsResult.Item;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Use case responsible for listing SecureItems for a given account.
  *
- * <p>This use case applies all business-level filtering such as incremental sync ({@code since})
- * and soft-delete exclusion.
+ * <p>Applies business-level filtering, ordering and limiting based on the provided {@link
+ * ListSecureItemsFilter}. No infrastructure or HTTP concerns are handled here.
  */
 @Component
 @RequiredArgsConstructor
 public class ListSecureItemsUseCase {
 
   private final SecureItemRepository secureItemRepository;
+  private final ItemTypeMapper itemTypeMapper;
 
   public Result<ListSecureItemsResult, VaultError> execute(final ListSecureItemsQuery query) {
-
-    final var allItems = secureItemRepository.findByAccount(query.accountId());
-
-    final var filteredItems =
-        allItems.stream()
-            .filter(item -> isAfterSince(item, query.since()))
-            .filter(item -> includeDeleted(item, query.includeDeleted()))
-            .sorted(Comparator.comparing(SecureItem::getUpdatedAt))
+    final var items =
+        secureItemRepository.findFilteredByAccount(query.accountId(), query.filter()).stream()
             .map(
                 item ->
                     new Item(
                         item.getItemId(),
-                        item.getItemType(),
+                        itemTypeMapper.toDto(item.getItemType()),
                         item.getSchemaVersion(),
                         item.getDisplayHint(),
                         item.getPayloadVersion(),
@@ -44,28 +39,6 @@ public class ListSecureItemsUseCase {
                         item.getDeletedAt()))
             .toList();
 
-    return Result.success(new ListSecureItemsResult(filteredItems));
-  }
-
-  private static boolean isAfterSince(
-      final com.miguelrodriguez19.safecube.vault.domain.model.SecureItem item,
-      final java.time.Instant since) {
-
-    if (since == null) {
-      return true;
-    }
-
-    return item.getUpdatedAt().isAfter(since);
-  }
-
-  private static boolean includeDeleted(
-      final com.miguelrodriguez19.safecube.vault.domain.model.SecureItem item,
-      final boolean includeDeleted) {
-
-    if (includeDeleted) {
-      return true;
-    }
-
-    return !item.isDeleted();
+    return Result.success(new ListSecureItemsResult(items));
   }
 }

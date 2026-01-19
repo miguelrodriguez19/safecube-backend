@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.UpdateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.UpdateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.UpdateSecureItemUseCase;
 import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
@@ -24,6 +26,7 @@ import unit.annotation.UnitTest;
 class UpdateSecureItemUseCaseTest {
 
   @Mock SecureItemRepository secureItemRepository;
+  @Mock ItemTypeMapper itemTypeMapper;
 
   @InjectMocks private UpdateSecureItemUseCase target;
 
@@ -55,7 +58,7 @@ class UpdateSecureItemUseCaseTest {
         new UpdateSecureItemCommand(
             accountId,
             itemId,
-            ItemType.PASSWORD,
+            ItemTypeDto.PASSWORD,
             2,
             "GitHub Updated",
             "new-payload".getBytes(),
@@ -130,7 +133,7 @@ class UpdateSecureItemUseCaseTest {
     return new UpdateSecureItemCommand(
         accountId,
         itemId,
-        ItemType.PASSWORD,
+        ItemTypeDto.PASSWORD,
         1,
         "GitHub",
         "payload".getBytes(),

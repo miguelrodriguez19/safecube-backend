@@ -1,0 +1,27 @@
+package com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper;
+
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
+import java.time.Instant;
+import java.util.Set;
+import org.springframework.stereotype.Component;
+
+/**
+ * ListSecureItemsFilterMapper
+ *
+ * <p>Maps HTTP request parameters into a ListSecureItemsFilter.
+ */
+@Component
+public class ListSecureItemsFilterMapper {
+
+  public ListSecureItemsFilter from(
+      final Instant since,
+      final ItemTypeDto type,
+      final Set<String> labels,
+      final boolean includeDeleted,
+      final Integer limit,
+      final Order order) {
+    return new ListSecureItemsFilter(since, type, labels, includeDeleted, limit, order);
+  }
+}

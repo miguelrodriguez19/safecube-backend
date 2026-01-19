@@ -1,10 +1,12 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.CreateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.DeleteSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.UpdateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.GetSecureItemQuery;
+import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
 import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsQuery;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.CreateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.DeleteSecureItemResult;
@@ -23,9 +25,11 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.request.Updat
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.ListSecureItemsResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemSummaryResponse;
+import com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper.ListSecureItemsFilterMapper;
 import jakarta.validation.Valid;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,6 +53,8 @@ public class VaultController {
   private final UpdateSecureItemUseCase updateUseCase;
   private final DeleteSecureItemUseCase deleteUseCase;
 
+  private final ListSecureItemsFilterMapper filterMapper;
+
   private final Clock clock;
 
   @PostMapping
@@ -57,12 +63,13 @@ public class VaultController {
       @Valid @RequestBody final CreateSecureItemRequest request) {
 
     final var now = Instant.now(clock);
+    final var itemType = ItemTypeDto.valueOf(request.itemType());
 
     final var result =
         createUseCase.execute(
             new CreateSecureItemCommand(
                 accountId,
-                request.itemType(),
+                itemType,
                 request.schemaVersion(),
                 request.displayHint(),
                 request.payload(),
@@ -86,10 +93,11 @@ public class VaultController {
     return switch (result) {
       case Result.Success<GetSecureItemResult, VaultError> s -> {
         final var item = s.success().orElseThrow();
+
         yield ResponseEntity.ok(
             new SecureItemResponse(
                 item.itemId(),
-                item.itemType(),
+                item.itemType().name(),
                 item.schemaVersion(),
                 item.displayHint(),
                 item.payload(),
@@ -107,10 +115,15 @@ public class VaultController {
   public ResponseEntity<ListSecureItemsResponse> list(
       @AuthenticationPrincipal final UUID accountId,
       @RequestParam(required = false) final Instant since,
-      @RequestParam(defaultValue = "false") final boolean includeDeleted) {
+      @RequestParam(required = false) final ItemTypeDto type,
+      @RequestParam(required = false) final Set<String> labels,
+      @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
+      @RequestParam(required = false) final Integer limit,
+      @RequestParam(required = false, defaultValue = "DISPLAY_NAME_ASC") final Order order) {
 
-    final var result =
-        listUseCase.execute(new ListSecureItemsQuery(accountId, since, includeDeleted));
+    final var filters = filterMapper.from(since, type, labels, includeDeleted, limit, order);
+
+    final var result = listUseCase.execute(new ListSecureItemsQuery(accountId, filters));
 
     return switch (result) {
       case Result.Success<ListSecureItemsResult, VaultError> s -> {
@@ -120,7 +133,7 @@ public class VaultController {
                     item ->
                         new SecureItemSummaryResponse(
                             item.itemId(),
-                            item.itemType(),
+                            item.itemType().name(),
                             item.schemaVersion(),
                             item.displayHint(),
                             item.payloadVersion(),
@@ -142,12 +155,13 @@ public class VaultController {
       @PathVariable final UUID itemId,
       @Valid @RequestBody final UpdateSecureItemRequest request) {
 
+    final var itemType = ItemTypeDto.valueOf(request.itemType());
     final var result =
         updateUseCase.execute(
             new UpdateSecureItemCommand(
                 accountId,
                 itemId,
-                request.itemType(),
+                itemType,
                 request.schemaVersion(),
                 request.displayHint(),
                 request.payload(),

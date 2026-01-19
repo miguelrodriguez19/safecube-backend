@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.application.dto.result;
 
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +10,7 @@ public record ListSecureItemsResult(List<Item> items) {
 
   public record Item(
       UUID itemId,
-      ItemType itemType,
+      ItemTypeDto itemType,
       int schemaVersion,
       String displayHint,
       long payloadVersion,

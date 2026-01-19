@@ -1,6 +1,5 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response;
 
-
 import java.util.List;
 
 /**

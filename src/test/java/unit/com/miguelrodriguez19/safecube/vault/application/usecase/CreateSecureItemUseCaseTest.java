@@ -6,13 +6,14 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
+import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.CreateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.CreateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.CreateSecureItemUseCase;
 import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidPayloadException;
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
 import java.time.Instant;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import unit.annotation.UnitTest;
 class CreateSecureItemUseCaseTest {
 
   @Mock SecureItemRepository secureItemRepository;
+  @Mock ItemTypeMapper itemTypeMapper;
 
   @InjectMocks private CreateSecureItemUseCase target;
 
@@ -58,7 +60,7 @@ class CreateSecureItemUseCaseTest {
       final var accountId = UUID.randomUUID();
 
       final var command =
-          new CreateSecureItemCommand(accountId, ItemType.NOTE, 1, "Note", null, now);
+          new CreateSecureItemCommand(accountId, ItemTypeDto.NOTE, 1, "Note", null, now);
 
       secureItemMock
           .when(() -> SecureItem.of(any(), any(), any(), anyInt(), any(), any(), any()))
@@ -73,6 +75,6 @@ class CreateSecureItemUseCaseTest {
 
   private CreateSecureItemCommand getCreateSecureItemCommand(
       final UUID accountId, final byte[] payload, final Instant now) {
-    return new CreateSecureItemCommand(accountId, ItemType.PASSWORD, 1, "GitHub", payload, now);
+    return new CreateSecureItemCommand(accountId, ItemTypeDto.PASSWORD, 1, "GitHub", payload, now);
   }
 }

@@ -4,6 +4,7 @@ import com.miguelrodriguez19.safecube.shared.result.Result;
 import com.miguelrodriguez19.safecube.vault.application.dto.command.CreateSecureItemCommand;
 import com.miguelrodriguez19.safecube.vault.application.dto.result.CreateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
+import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidPayloadException;
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
@@ -22,16 +23,18 @@ import org.springframework.stereotype.Component;
 public class CreateSecureItemUseCase {
 
   private final SecureItemRepository secureItemRepository;
+  private final ItemTypeMapper itemTypeMapper;
 
   public Result<CreateSecureItemResult, VaultError> execute(final CreateSecureItemCommand command) {
     try {
       final var itemId = UUID.randomUUID();
+      final var itemType = itemTypeMapper.toDomain(command.itemTypeDto());
 
       final var secureItem =
           SecureItem.of(
               itemId,
               command.accountId(),
-              command.itemType(),
+              itemType,
               command.schemaVersion(),
               command.displayHint(),
               command.payload(),
