@@ -11,7 +11,7 @@ public class ItemTypeValidator implements ConstraintValidator<ValidItemType, Str
   public boolean isValid(final String value, final ConstraintValidatorContext context) {
 
     if (value == null) {
-      return false;
+      return true;
     }
 
     try {
