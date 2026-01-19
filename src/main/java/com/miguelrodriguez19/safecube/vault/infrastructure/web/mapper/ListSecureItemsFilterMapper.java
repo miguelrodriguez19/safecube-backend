@@ -31,5 +31,4 @@ public class ListSecureItemsFilterMapper {
         limit,
         order != null ? Order.valueOf(order) : null);
   }
-
 }

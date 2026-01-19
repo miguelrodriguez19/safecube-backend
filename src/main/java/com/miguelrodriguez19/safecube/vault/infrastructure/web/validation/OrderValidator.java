@@ -1,11 +1,11 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.validation;
 
 import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
-import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidItemType;
+import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidOrder;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class OrderValidator implements ConstraintValidator<ValidItemType, String> {
+public class OrderValidator implements ConstraintValidator<ValidOrder, String> {
 
   @Override
   public boolean isValid(final String value, final ConstraintValidatorContext context) {

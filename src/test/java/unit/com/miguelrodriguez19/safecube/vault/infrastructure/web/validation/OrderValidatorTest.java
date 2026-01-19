@@ -9,23 +9,23 @@ import unit.annotation.UnitTest;
 @UnitTest
 class OrderValidatorTest {
 
-    private final OrderValidator target = new OrderValidator();
+  private final OrderValidator target = new OrderValidator();
 
-    @Test
-    void shouldReturnTrue_givenValidItemType() {
-        final var value = "DISPLAY_NAME_DESC";
+  @Test
+  void shouldReturnTrue_givenValidItemType() {
+    final var value = "DISPLAY_NAME_DESC";
 
-        final var result = target.isValid(value, null);
+    final var result = target.isValid(value, null);
 
-        assertThat(result).isTrue();
-    }
+    assertThat(result).isTrue();
+  }
 
-    @Test
-    void shouldReturnFalse_givenInvalidItemType() {
-        final var value = "INVALID_TYPE";
+  @Test
+  void shouldReturnFalse_givenInvalidItemType() {
+    final var value = "INVALID_TYPE";
 
-        final var result = target.isValid(value, null);
+    final var result = target.isValid(value, null);
 
-        assertThat(result).isFalse();
-    }
+    assertThat(result).isFalse();
+  }
 }
