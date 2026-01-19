@@ -48,7 +48,9 @@ No gestiona:
    El cliente nunca recibe identidad ni entidades, solo tokens.
 
 4. **Errores explícitos**
-   Los errores de negocio se modelan como resultados, no excepciones.
+   Los errores de dominio se modelan como resultados.
+   Las excepciones quedan reservadas a errores de infraestructura
+   o de entrada inválida (HTTP / binding / serialización).
 
 5. **Infraestructura aislada**
    Criptografía, JWT y persistencia viven fuera del dominio.
@@ -82,6 +84,23 @@ Notas:
 ---
 
 ## 4. Casos de Uso
+
+### Validación de Entradas (HTTP)
+
+Las entradas HTTP del slice `auth` se validan mediante
+**Bean Validation (Jakarta Validation)** en los DTOs de infraestructura.
+
+Características:
+
+* Validación automática antes de invocar casos de uso
+* Errores de validación retornan `400 Bad Request`
+* Formato de error uniforme (`ErrorResponse`)
+
+Ejemplos de validación:
+
+* Email con formato válido
+* Password no vacío
+* Campos obligatorios presentes
 
 ### 4.1 RegisterAccountUseCase
 
@@ -121,6 +140,10 @@ Registra una nueva cuenta autenticable.
 #### Descripción
 
 Verifica credenciales de una cuenta existente.
+
+#### Reglas
+
+* La autenticación falla si la cuenta está deshabilitada (`enabled = false`)
 
 #### Input
 
@@ -184,6 +207,11 @@ Rota un refresh token válido y emite una nueva sesión.
 * `issuedAt`
 * `newRefreshTokenExpiresAt`
 
+> Nota:
+> El cliente solo envía el refresh token en claro.
+> El hashing y la generación de nuevos tokens
+> se realizan exclusivamente en la capa de infraestructura.
+
 #### Output
 
 * `IssuedTokensResult`
@@ -215,7 +243,8 @@ Invalida todas las sesiones activas de una cuenta.
 
 #### Output
 
-* `void`
+* Sin contenido de dominio.
+* A nivel HTTP: respuesta exitosa (`200 OK`).
 
 #### Reglas
 
@@ -347,7 +376,9 @@ Flujo:
 ✔ Hashing HMAC con secret server-side
 
 ❌ OAuth / OIDC (fase futura)
-❌ Soft-delete de auth accounts inmediato
+❌ Soft-delete inmediato de auth accounts  
+(ver ADR-003: Account Deactivation & Deferred Deletion)
+
 
 ---
 

@@ -2,7 +2,8 @@
 
 > Documento de **diseño de casos de uso** para el slice **vault**.
 >
-> Este slice gestiona la **persistencia y sincronización de información cifrada** (opaque payloads) enviada por clientes. El backend **no interpreta** el contenido cifrado.
+> Este slice gestiona la **persistencia y sincronización de información cifrada** (opaque payloads) enviada por
+> clientes. El backend **no interpreta** el contenido cifrado.
 
 ---
 
@@ -77,6 +78,9 @@ Toda semántica rica vive **dentro del payload cifrado**.
 
 ### 2.3 Groups (organización lógica)
 
+> ⚠️ Nota: El modelo de Groups está definido a nivel conceptual,  
+> pero **no está implementado ni expuesto** en la versión v1 del backend.
+
 Los grupos permiten organizar visualmente los items sin afectar al cifrado ni a la concurrencia.
 
 Un grupo:
@@ -119,13 +123,15 @@ Metadata permitida:
 - `schemaVersion` (int)
 - `displayHint` (String corto, opcional)
 
-Otras estrategias (ej. tokens de búsqueda determinísticos) se consideran **fuera de alcance** y se evaluarán en versiones futuras si existe una necesidad clara.
+Otras estrategias (ej. tokens de búsqueda determinísticos) se consideran **fuera de alcance** y se evaluarán en
+versiones futuras si existe una necesidad clara.
 
 ---
 
 ## 3. Casos de Uso
 
-> Los casos de uso de organización (groups) se definirán en una iteración posterior. En esta versión, el slice `vault` se centra en la gestión de secretos (`SecureItem`).
+> Los casos de uso de organización (groups) se definirán en una iteración posterior. En esta versión, el slice `vault`
+> se centra en la gestión de secretos (`SecureItem`).
 
 > Los siguientes casos de uso se consideran el mínimo viable para sincronización.
 
@@ -133,7 +139,8 @@ Otras estrategias (ej. tokens de búsqueda determinísticos) se consideran **fue
 
 #### 3.1.1 Descripción
 
-Crea un nuevo `SecureItem` para una cuenta, almacenando un payload cifrado junto con **metadata funcional mínima** necesaria para UX y organización.
+Crea un nuevo `SecureItem` para una cuenta, almacenando un payload cifrado junto con **metadata funcional mínima**
+necesaria para UX y organización.
 
 ---
 
@@ -146,48 +153,26 @@ Crea un nuevo `SecureItem` para una cuenta, almacenando un payload cifrado junto
 #### 3.1.3 Input
 
 - `CreateSecureItemCommand`
-  - `accountId` (Identifier)
-  - `itemType` (enum)
-  - `schemaVersion` (int)
-  - `displayHint` (String, nullable)
-  - `payload` (byte[] | String)
+    - `accountId` (Identifier)
+    - `itemType` (enum)
+    - `schemaVersion` (int)
+    - `displayHint` (String, non-null, max 255 chars)
+    - `payload` (byte[] | Base64 en transporte HTTP)
 
 ---
 
 #### 3.1.4 Output
 
 - `CreateSecureItemResult`
-  - `itemId` (Identifier)
-  - `createdAt` (Instant)
-
----
-
-#### 3.1.2 Actor
-
-- Usuario autenticado.
-
----
-
-#### 3.1.3 Input
-
-- `CreateSecureItemCommand`
-  - `accountId` (Identifier)
-  - `payload` (byte[] | String)
-
----
-
-#### 3.1.4 Output
-
-- `CreateSecureItemResult`
-  - `itemId` (Identifier)
-  - `createdAt` (Instant)
+    - `itemId` (Identifier)
+    - `createdAt` (Instant)
 
 ---
 
 #### 3.1.5 Errores Esperados
 
 - `InvalidPayload`
-  - El payload no cumple requisitos mínimos (tamaño, formato).
+    - El payload no cumple requisitos mínimos (tamaño, formato).
 
 ---
 
@@ -201,33 +186,33 @@ Lista los `SecureItems` de una cuenta para permitir sincronización y navegació
 
 #### 3.2.2 Input
 
-- `ListSecureItemsQuery`
-  - `accountId` (Identifier)
-  - `since` (Instant, nullable)
-  - `filter` (ListFilter, nullable)
+- ListSecureItemsQuery
+    - accountId (Identifier)
+    - filter (ListSecureItemsFilter)
 
-`ListFilter` (objeto **opcional y extensible**, no cerrado):
+ListSecureItemsFilter:
 
-- `sort`
-  - `field` (enum) // ej: UPDATED\_AT | CREATED\_AT
-  - `direction` (enum) // ASC | DESC
-- `itemType` (enum, nullable) // ejemplo de filtro
-- `includeDeleted` (boolean, default = false)
+- since (Instant, nullable)
+- type (ItemType, nullable)
+- labels (Set<String>, nullable) // reservado para futuras versiones
+- includeDeleted (boolean, default = false)
+- limit (int, optional)
+- order (enum string)
 
-> El objeto `filter` es **orientativo** y puede evolucionar sin romper el contrato del caso de uso.
+> El objeto de filtros es **extensible** y se valida en capa web.
 
 ---
 
 #### 3.2.3 Output
 
 - `ListSecureItemsResult`
-  - `items` (list)
-    - `itemId` (Identifier)
-    - `itemType` (enum)
-    - `schemaVersion` (int)
-    - `displayHint` (String, nullable)
-    - `updatedAt` (Instant)
-    - `deletedAt` (Instant, nullable)
+    - `items` (list)
+        - `itemId` (Identifier)
+        - `itemType` (enum)
+        - `schemaVersion` (int)
+        - `displayHint` (String, nullable)
+        - `updatedAt` (Instant)
+        - `deletedAt` (Instant, nullable)
 
 ---
 
@@ -242,29 +227,29 @@ Recupera un `SecureItem` específico (payload cifrado y metadata asociada) para 
 #### 3.3.2 Input
 
 - `GetSecureItemQuery`
-  - `accountId` (Identifier)
-  - `itemId` (Identifier)
+    - `accountId` (Identifier)
+    - `itemId` (Identifier)
 
 ---
 
 #### 3.3.3 Output
 
 - `GetSecureItemResult`
-  - `itemId` (Identifier)
-  - `itemType` (enum)
-  - `schemaVersion` (int)
-  - `displayHint` (String, nullable)
-  - `payload` (byte[] | String)
-  - `payloadVersion` (long)
-  - `updatedAt` (Instant)
-  - `deletedAt` (Instant, nullable)
+    - `itemId` (Identifier)
+    - `itemType` (enum)
+    - `schemaVersion` (int)
+    - `displayHint` (String, nullable)
+    - `payload` (byte[] | String)
+    - `payloadVersion` (long)
+    - `updatedAt` (Instant)
+    - `deletedAt` (Instant, nullable)
 
 ---
 
 #### 3.3.4 Errores Esperados
 
 - `SecureItemNotFound`
-  - No existe el item para esa cuenta.
+    - No existe el item para esa cuenta.
 
 ---
 
@@ -272,9 +257,13 @@ Recupera un `SecureItem` específico (payload cifrado y metadata asociada) para 
 
 #### 3.4.1 Descripción
 
-Actualiza el contenido de un `SecureItem` existente, permitiendo modificar el payload cifrado y la metadata funcional asociada.
+Actualiza el contenido de un `SecureItem` existente, permitiendo modificar el payload cifrado y la metadata funcional
+asociada.
 
-La actualización se rige por una estrategia de **concurrencia optimista basada en timestamp**: el item solo se actualiza si la fecha de modificación proporcionada es posterior a la almacenada en el sistema y si el campo `schemaVersion` también es mayor al almacenado en el sistema.
+La actualización se rige por una estrategia de **concurrencia optimista basada en timestamp**: el item solo se actualiza
+si la fecha de modificación proporcionada es posterior a la almacenada en el sistema. La concurrencia se controla
+exclusivamente mediante `updatedAt`.
+El campo `schemaVersion` permite evolucionar el payload, pero **no forma parte del control de concurrencia**.
 
 ---
 
@@ -287,22 +276,22 @@ La actualización se rige por una estrategia de **concurrencia optimista basada 
 #### 3.4.3 Input
 
 - `UpdateSecureItemCommand`
-  - `accountId` (Identifier)
-  - `itemId` (Identifier)
-  - `itemType` (enum)
-  - `schemaVersion` (int)
-  - `displayHint` (String, nullable)
-  - `payload` (byte[] | String)
-  - `updatedAt` (Instant)  // timestamp del cliente
+    - `accountId` (Identifier)
+    - `itemId` (Identifier)
+    - `itemType` (enum)
+    - `schemaVersion` (int)
+    - `displayHint` (String, nullable)
+    - `payload` (byte[] | String)
+    - `updatedAt` (Instant)  // timestamp del cliente
 
 ---
 
 #### 3.4.4 Output
 
 - `UpdateSecureItemResult`
-  - `itemId` (Identifier)
-  - `updatedAt` (Instant)
-  - `payloadVersion` (long)
+    - `itemId` (Identifier)
+    - `updatedAt` (Instant)
+    - `payloadVersion` (long)
 
 ---
 
@@ -310,15 +299,15 @@ La actualización se rige por una estrategia de **concurrencia optimista basada 
 
 - `SecureItemNotFound`
 
-  - No existe el item para esa cuenta.
+    - No existe el item para esa cuenta.
 
 - `StaleUpdateRejected`
 
-  - El `updatedAt` proporcionado es anterior o igual al almacenado.
+    - El `updatedAt` proporcionado es anterior o igual al almacenado.
 
 - `InvalidPayload`
 
-  - El payload no cumple requisitos mínimos.
+    - El payload no cumple requisitos mínimos.
 
 ---
 
@@ -326,7 +315,8 @@ La actualización se rige por una estrategia de **concurrencia optimista basada 
 
 #### 3.5.1 Descripción
 
-Marca un `SecureItem` como eliminado mediante **baja lógica**, permitiendo que la eliminación sea sincronizada correctamente entre clientes.
+Marca un `SecureItem` como eliminado mediante **baja lógica**, permitiendo que la eliminación sea sincronizada
+correctamente entre clientes.
 
 ---
 
@@ -339,17 +329,16 @@ Marca un `SecureItem` como eliminado mediante **baja lógica**, permitiendo que 
 #### 3.5.3 Input
 
 - `DeleteSecureItemCommand`
-  - `accountId` (Identifier)
-  - `itemId` (Identifier)
-  - `updatedAt` (Instant)  // timestamp del cliente
+    - `accountId` (Identifier)
+    - `itemId` (Identifier)
 
 ---
 
 #### 3.5.4 Output
 
 - `DeleteSecureItemResult`
-  - `itemId` (Identifier)
-  - `deletedAt` (Instant)
+    - `itemId` (Identifier)
+    - `deletedAt` (Instant)
 
 ---
 
@@ -357,11 +346,11 @@ Marca un `SecureItem` como eliminado mediante **baja lógica**, permitiendo que 
 
 - `SecureItemNotFound`
 
-  - No existe el item para esa cuenta.
+    - No existe el item para esa cuenta.
 
 - `StaleDeleteRejected`
 
-  - El `updatedAt` proporcionado es anterior o igual al almacenado.
+    - El `updatedAt` proporcionado es anterior o igual al almacenado.
 
 ---
 
@@ -370,8 +359,10 @@ Marca un `SecureItem` como eliminado mediante **baja lógica**, permitiendo que 
 - El `accountId` se obtiene del contexto de autenticación (infraestructura).
 - La comunicación con otros slices se realiza **exclusivamente mediante identificadores**.
 - La eliminación de items sigue un modelo de **baja lógica con borrado físico diferido**.
-- La concurrencia se gestiona mediante **timestamps de modificación**, solo se aceptan operaciones más recientes que el estado persistido y el \*\*campo\*\* `schemaVersion` : es mayor al almacenado en el sistema.
-- El contenido cifrado, el modelo criptográfico y la gestión de claves se especifican en un documento separado: `Vault Crypto Strategy – v1`.
+- La concurrencia se gestiona mediante **timestamps de modificación**, solo se aceptan operaciones más recientes que el
+  estado persistido y el \*\*campo\*\*`schemaVersion`: es mayor al almacenado en el sistema.
+- El contenido cifrado, el modelo criptográfico y la gestión de claves se especifican en un documento separado:
+  `Vault Crypto Strategy – v1`.
 
 ---
 
@@ -408,8 +399,8 @@ Características:
 - And un payload válido.
 - When se ejecuta `CreateSecureItemUseCase`.
 - Then:
-  - Se persiste un nuevo `SecureItem` con `createdAt`.
-  - Se devuelve `itemId` y `createdAt`.
+    - Se persiste un nuevo `SecureItem` con `createdAt`.
+    - Se devuelve `itemId` y `createdAt`.
 
 **Payload inválido**
 
@@ -426,8 +417,8 @@ Características:
 - Given una cuenta con items existentes.
 - When se ejecuta `ListSecureItemsUseCase`.
 - Then:
-  - Se devuelven items de esa cuenta.
-  - Cada item incluye `itemId`, `updatedAt` y `deletedAt` (si aplica).
+    - Se devuelven items de esa cuenta.
+    - Cada item incluye `itemId`, `updatedAt` y `deletedAt` (si aplica).
 
 \*\*Filtro \*\***`since`**
 
@@ -460,9 +451,9 @@ Características:
 - Given un item existente con `updatedAt = T1`.
 - When se actualiza con `updatedAt = T2` y `T2 > T1`.
 - Then:
-  - Se persiste el nuevo payload.
-  - Se incrementa `payloadVersion`.
-  - Se devuelve `updatedAt = T2`.
+    - Se persiste el nuevo payload.
+    - Se incrementa `payloadVersion`.
+    - Se devuelve `updatedAt = T2`.
 
 **Actualización rechazada (stale)**
 
@@ -491,8 +482,8 @@ Características:
 - Given un item existente con `updatedAt = T1`.
 - When se elimina con `updatedAt = T2` y `T2 > T1`.
 - Then:
-  - Se marca `deletedAt`.
-  - El item aparece como eliminado en listados.
+    - Se marca `deletedAt`.
+    - El item aparece como eliminado en listados.
 
 **Borrado rechazado (stale)**
 

@@ -1,6 +1,7 @@
 # Database Strategy – SafeCube Backend
 
-Este documento define la **estrategia de base de datos** del backend de SafeCube, incluyendo principios de diseño, responsabilidades por slice y el esquema actual soportado.
+Este documento define la **estrategia de base de datos** del backend de SafeCube, incluyendo principios de diseño,
+responsabilidades por slice y el esquema actual soportado.
 
 ---
 
@@ -9,7 +10,8 @@ Este documento define la **estrategia de base de datos** del backend de SafeCube
 La base de datos de SafeCube sigue los siguientes principios:
 
 * **Single Source of Truth**: el esquema SQL es la referencia definitiva del modelo persistente.
-* **Explicit lifecycle**: los estados relevantes (enabled, revoked, expired, disabled) se representan explícitamente mediante columnas.
+* **Explicit lifecycle**: los estados relevantes (enabled, revoked, expired, disabled) se representan explícitamente
+  mediante columnas.
 * **No implicit deletes**: no se utilizan borrados lógicos implícitos salvo decisión explícita documentada.
 * **Infrastructure-agnostic domain**: el dominio no depende de JPA ni de detalles de persistencia.
 
@@ -41,14 +43,25 @@ La base de datos de SafeCube sigue los siguientes principios:
 ### 3.1 auth_accounts
 
 ```sql
-CREATE TABLE IF NOT EXISTS auth_accounts (
-    account_id UUID PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS auth_accounts
+(
+    account_id
+    UUID
+    PRIMARY
+    KEY,
+    email
+    VARCHAR
+(
+    255
+) NOT NULL UNIQUE,
+    password_hash VARCHAR
+(
+    255
+) NOT NULL,
     enabled BOOLEAN NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     disabled_at TIMESTAMP WITH TIME ZONE
-);
+                              );
 ```
 
 Responsabilidad:
@@ -61,14 +74,25 @@ Responsabilidad:
 ### 3.2 auth_refresh_tokens
 
 ```sql
-CREATE TABLE IF NOT EXISTS auth_refresh_tokens (
-    token_id UUID PRIMARY KEY,
-    account_id UUID NOT NULL,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS auth_refresh_tokens
+(
+    token_id
+    UUID
+    PRIMARY
+    KEY,
+    account_id
+    UUID
+    NOT
+    NULL,
+    token_hash
+    VARCHAR
+(
+    255
+) NOT NULL UNIQUE,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     revoked_at TIMESTAMP WITH TIME ZONE
-);
+                             );
 
 CREATE INDEX IF NOT EXISTS idx_auth_refresh_tokens_account_id
     ON auth_refresh_tokens (account_id);
@@ -87,13 +111,25 @@ Responsabilidad:
 ### 3.3 user_profiles
 
 ```sql
-CREATE TABLE IF NOT EXISTS user_profiles (
-    user_id UUID PRIMARY KEY,
-    account_id UUID NOT NULL UNIQUE,
-    display_name VARCHAR(100) NOT NULL,
+CREATE TABLE IF NOT EXISTS user_profiles
+(
+    user_id
+    UUID
+    PRIMARY
+    KEY,
+    account_id
+    UUID
+    NOT
+    NULL
+    UNIQUE,
+    display_name
+    VARCHAR
+(
+    100
+) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
+                             );
 ```
 
 Responsabilidad:
@@ -103,12 +139,65 @@ Responsabilidad:
 
 ---
 
+### 3.4 vault_secure_items
+
+```sql
+CREATE TABLE IF NOT EXISTS vault_secure_items
+(
+    item_id
+    UUID
+    PRIMARY
+    KEY,
+    account_id
+    UUID
+    NOT
+    NULL,
+    item_type
+    VARCHAR
+(
+    50
+) NOT NULL,
+    schema_version INTEGER NOT NULL,
+    display_hint VARCHAR
+(
+    255
+) NOT NULL,
+    payload BYTEA NOT NULL,
+    payload_version BIGINT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE
+                             );
+
+CREATE INDEX IF NOT EXISTS idx_vault_items_account_id
+    ON vault_secure_items (account_id);
+
+CREATE INDEX IF NOT EXISTS idx_vault_items_updated_at
+    ON vault_secure_items (updated_at);
+
+CREATE INDEX IF NOT EXISTS idx_vault_items_deleted_at
+    ON vault_secure_items (deleted_at);
+```
+
+Responsabilidad:
+
+- Persistencia de secretos cifrados (opaque payloads).
+- Aislamiento estricto por account_id.
+- Soporte de sincronización mediante timestamps.
+- Implementa borrado lógico explícito (deleted_at).
+
+💡 Nota: aunque internamente uses otro nombre de tabla, el **concepto debe existir** en el doc.
+
+---
+
 ## 4. Relaciones Entre Tablas
 
-* `auth_accounts (1) —— (0..*) auth_refresh_tokens`
-* `auth_accounts (1) —— (0..1) user_profiles`
+* auth_accounts (1) —— (0..*) auth_refresh_tokens
+* auth_accounts (1) —— (0..1) user_profiles
+* auth_accounts (1) —— (0..*) vault_secure_items
 
-Las relaciones se aplican a nivel **lógico**, no mediante foreign keys estrictas en v1, para mantener bajo acoplamiento entre slices.
+> La relación entre `auth_accounts` y `vault_secure_items`
+> es **lógica**, no implementada mediante foreign keys físicas en v1.
 
 ---
 
@@ -141,9 +230,25 @@ erDiagram
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
+    
+    VAULT_SECURE_ITEMS {
+        UUID item_id PK
+        UUID account_id
+        VARCHAR item_type
+        INTEGER schema_version
+        VARCHAR display_hint
+        BYTEA payload
+        BIGINT payload_version
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_at
+    }
+
 
     AUTH_ACCOUNTS ||--o{ AUTH_REFRESH_TOKENS : has
     AUTH_ACCOUNTS ||--o| USER_PROFILES : owns
+    AUTH_ACCOUNTS ||--o{ VAULT_SECURE_ITEMS : owns
+
 ```
 
 ---
@@ -151,9 +256,15 @@ erDiagram
 ## 6. Decisiones Explícitas
 
 * No existen `FOREIGN KEY` físicas en v1.
-* No existe `deleted_at` en ninguna tabla.
+* No existe `deleted_at` en tablas de identidad (`auth`, `user`).
+* El slice `vault` implementa borrado lógico explícito (`deleted_at`)
+  para soportar sincronización entre clientes.
 * No hay migraciones automáticas (Flyway/Liquibase) en v1.
 * El esquema evoluciona mediante decisiones arquitectónicas documentadas (ADR).
+* El slice `vault` utiliza timestamps (`created_at`, `updated_at`, `deleted_at`)
+  como mecanismo de sincronización y concurrencia.
+* No se utilizan locks ni versionado optimista JPA.
+
 
 ---
 
