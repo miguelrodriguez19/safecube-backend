@@ -9,6 +9,7 @@ import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaSecureItemRepositoryAdapter;
 import integration.annotation.IntegrationTest;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -99,7 +100,7 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
 
     target.save(secureItem);
 
-    final var deletedAt = now.plusSeconds(30);
+    final var deletedAt = now.plusSeconds(30).truncatedTo(ChronoUnit.MICROS);
     target.softDelete(itemId, accountId, deletedAt);
 
     final var loaded = target.findByIdAndAccount(itemId, accountId);
