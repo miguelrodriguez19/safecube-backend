@@ -8,4 +8,4 @@ import java.util.UUID;
  *
  * <p>Command object carrying the data required to update an existing {@code UserProfile}.
  */
-public record UpdateUserProfileCommand(UUID accountId, String displayName, Instant now) {}
+public record UpdateUserProfileCommand(UUID accountId, String displayName, Instant updatedAt) {}

@@ -40,9 +40,9 @@ public class UpdateUserProfileUseCase {
       return Result.failure(new UserError.UserProfileNotFound());
     }
 
-    final UserProfile profile = profileOpt.get();
+    final var profile = profileOpt.get();
 
-    profile.updateDisplayName(command.displayName(), command.now());
+    profile.updateDisplayName(command.displayName(), command.updatedAt());
     repository.save(profile);
 
     final var response = mapper.mapResponse(profile);
