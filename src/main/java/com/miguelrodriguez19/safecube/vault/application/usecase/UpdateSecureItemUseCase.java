@@ -6,7 +6,6 @@ import com.miguelrodriguez19.safecube.vault.application.dto.result.UpdateSecureI
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
 import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
-import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidPayloadException;
 import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -37,32 +36,25 @@ public class UpdateSecureItemUseCase {
       return Result.failure(new VaultError.StaleUpdateRejected());
     }
 
-    try {
-      final var itemType = itemTypeMapper.toDomain(command.itemTypeDto());
+    final var itemType = itemTypeMapper.toDomain(command.itemTypeDto());
 
-      final var updatedItem =
-          SecureItem.restore(
-              existingItem.getItemId(),
-              existingItem.getAccountId(),
-              itemType,
-              command.schemaVersion(),
-              command.displayHint(),
-              command.payload(),
-              existingItem.getPayloadVersion() + 1,
-              existingItem.getCreatedAt(),
-              command.updatedAt(),
-              existingItem.getDeletedAt());
+    final var updatedItem =
+        SecureItem.restore(
+            existingItem.getItemId(),
+            existingItem.getAccountId(),
+            itemType,
+            command.schemaVersion(),
+            command.displayHint(),
+            command.payload(),
+            existingItem.getPayloadVersion() + 1,
+            existingItem.getCreatedAt(),
+            command.updatedAt(),
+            existingItem.getDeletedAt());
 
-      secureItemRepository.update(updatedItem);
+    secureItemRepository.update(updatedItem);
 
-      return Result.success(
-          new UpdateSecureItemResult(
-              updatedItem.getItemId(),
-              updatedItem.getPayloadVersion(),
-              updatedItem.getUpdatedAt()));
-
-    } catch (InvalidPayloadException exception) {
-      return Result.failure(new VaultError.InvalidPayload());
-    }
+    return Result.success(
+        new UpdateSecureItemResult(
+            updatedItem.getItemId(), updatedItem.getPayloadVersion(), updatedItem.getUpdatedAt()));
   }
 }
