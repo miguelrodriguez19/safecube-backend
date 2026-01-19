@@ -11,7 +11,7 @@ Feature: Register authentication account
     And request
       """
       {
-        "email": "register@safecube.io",
+        "email": '#(utilsJs.randomEmail("register_ok"))',
         "password": "password123"
       }
       """
@@ -20,7 +20,7 @@ Feature: Register authentication account
 
 
   Scenario: Register fails when email already exists
-    * def rq = { email: 'duplicate@safecube.io', password: 'password123' }
+    * def rq = { email: '#(utilsJs.randomEmail("duplicate"))', password: 'password123' }
 
     # Register
     * call read(registerHelper) rq

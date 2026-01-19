@@ -7,7 +7,7 @@ Feature: Update authenticated user profile
 
 
   Scenario: Update existing user profile
-    * def email = 'profile_update@safecube.io'
+   * def email = utilsJs.randomEmail('profile_update')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -29,7 +29,7 @@ Feature: Update authenticated user profile
 
 
   Scenario: Update user profile when none exists
-    * def email = 'profile_update_missing@safecube.io'
+   * def email = utilsJs.randomEmail('profile_update_missing')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 

@@ -7,7 +7,7 @@ Feature: Authenticate account and use access token
 
 
   Scenario: Login succeeds and returns tokens
-    * def email = 'login@safecube.io'
+   * def email = utilsJs.randomEmail('login')
     * def password = 'password123'
     * def rq = { email: '#(email)', password: '#(password)' }
 
@@ -23,7 +23,7 @@ Feature: Authenticate account and use access token
 
 
   Scenario: Access protected endpoint with valid access token
-    * def email = 'protected@safecube.io'
+   * def email = utilsJs.randomEmail('protected')
     * def password = 'password123'
     * def rq = { email: '#(email)', password: '#(password)' }
 

@@ -6,7 +6,7 @@ Feature: Logout and revoke refresh tokens
     * header Content-Type = 'application/json'
 
   Scenario: Logout revokes refresh token
-    * def email = 'logout@safecube.io'
+   * def email = utilsJs.randomEmail('logout')
     * def password = 'password123'
     * def rq = { email: '#(email)', password: '#(password)' }
 

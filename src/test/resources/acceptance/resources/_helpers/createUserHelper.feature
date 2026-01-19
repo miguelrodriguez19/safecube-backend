@@ -1,6 +1,8 @@
 Feature: createUser helper
 
   Scenario:
+    * print credentials
+
     # Register the user
     * call read(registerHelper) credentials
 
