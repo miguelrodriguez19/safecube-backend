@@ -20,7 +20,6 @@ import com.miguelrodriguez19.safecube.vault.application.usecase.GetSecureItemUse
 import com.miguelrodriguez19.safecube.vault.application.usecase.ListSecureItemsUseCase;
 import com.miguelrodriguez19.safecube.vault.application.usecase.UpdateSecureItemUseCase;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.request.CreateSecureItemRequest;
-import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.request.DeleteSecureItemRequest;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.request.UpdateSecureItemRequest;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.ListSecureItemsResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemResponse;
@@ -34,6 +33,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -116,7 +116,8 @@ public class VaultController {
   @GetMapping
   public ResponseEntity<ListSecureItemsResponse> list(
       @AuthenticationPrincipal final UUID accountId,
-      @RequestParam(required = false) final Instant since,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          final Instant since,
       @RequestParam(required = false) @ValidItemType final String type,
       @RequestParam(required = false) final Set<String> labels,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
@@ -180,12 +181,11 @@ public class VaultController {
 
   @DeleteMapping("/{itemId}")
   public ResponseEntity<DeleteSecureItemResult> delete(
-      @AuthenticationPrincipal final UUID accountId,
-      @PathVariable("itemId") final UUID itemId,
-      @Valid @RequestBody final DeleteSecureItemRequest request) {
+      @AuthenticationPrincipal final UUID accountId, @PathVariable("itemId") final UUID itemId) {
 
+    final var deletedAt = Instant.now(clock);
     final var result =
-        deleteUseCase.execute(new DeleteSecureItemCommand(accountId, itemId, request.deletedAt()));
+        deleteUseCase.execute(new DeleteSecureItemCommand(accountId, itemId, deletedAt));
 
     return switch (result) {
       case Result.Success<DeleteSecureItemResult, VaultError> s ->

@@ -9,8 +9,8 @@ import org.springframework.data.jpa.domain.Specification;
  * Utility class that provides reusable {@link org.springframework.data.jpa.domain.Specification}
  * instances for filtering {@link SecureItemJpaEntity} queries.
  *
- * <p>These specifications are intended to be composed using logical operators such as
- * {@code and()} and {@code or()} to build dynamic and type-safe database queries.</p>
+ * <p>These specifications are intended to be composed using logical operators such as {@code and()}
+ * and {@code or()} to build dynamic and type-safe database queries.
  */
 public final class SecureItemSpecifications {
 
@@ -20,8 +20,8 @@ public final class SecureItemSpecifications {
     return (root, query, cb) -> cb.equal(root.get("accountId"), accountId);
   }
 
-  public static Specification<SecureItemJpaEntity> updatedAfter(final Instant since) {
-    return (root, query, cb) -> cb.greaterThan(root.get("updatedAt"), since);
+  public static Specification<SecureItemJpaEntity> createdAt(final Instant since) {
+    return (root, query, cb) -> cb.greaterThan(root.get("createdAt"), since);
   }
 
   public static Specification<SecureItemJpaEntity> hasType(final String type) {
