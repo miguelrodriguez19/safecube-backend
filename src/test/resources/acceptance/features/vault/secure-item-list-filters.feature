@@ -26,7 +26,7 @@ Feature: List secure items with filters
     And match response.items == '#[1]'
     And match response.items[0].itemType == 'PASSWORD'
 
-@only
+
   Scenario: Filter items updated after a given instant
     * def email = utilsJs.randomEmail('sec_items_filter_since')
     * def password = 'password123'
