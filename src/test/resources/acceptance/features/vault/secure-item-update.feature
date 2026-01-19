@@ -17,20 +17,22 @@ Feature: Update secure item
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)' }
 
     * def newPayload = utilsJs.base64('{"secret":"updated"}')
-    * def updatedAt = utilsJs.instantNow()
-
-    Given path '/vault/items', item.itemId
-    And headers utilsJs.bearer(accessToken)
-    And request
+    * def updatedAt = utilsJs.datePlusDays(item.createdAt, 2)
+    * def requestBody =
       """
       {
         itemType: 'PASSWORD',
-        schemaVersion: 1,
+        schemaVersion: 2,
         displayHint: 'Updated secure item',
         payload: '#(newPayload)',
         updatedAt: '#(updatedAt)'
       }
       """
+
+    Given path '/vault/items', item.itemId
+    And headers utilsJs.bearer(accessToken)
+    And request requestBody
+
     When method put
     Then status 200
 

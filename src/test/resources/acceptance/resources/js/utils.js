@@ -30,5 +30,13 @@ function fn() {
         return java.time.Instant.now(java.time.Clock.systemUTC()).toString();
     };
 
+    /**
+     *
+     */
+    utils.datePlusDays = function(date, amountDays){
+        return java.time.Instant.parse(date.toString())
+                    .plus(amountDays, java.time.temporal.ChronoUnit.DAYS).toString()
+    }
+
     return utils;
 }
