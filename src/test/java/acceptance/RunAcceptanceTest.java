@@ -9,6 +9,7 @@ class RunAcceptanceTest {
 
   private static final String CONFIG_PATH = "classpath:acceptance/resources/config";
   private static final String FEATURES_PATH = "classpath:acceptance/features";
+  private static final String REPORT_DIR = "target/karate-reports";
 
   @Test
   void allAcceptanceTests() {
@@ -16,7 +17,8 @@ class RunAcceptanceTest {
         Runner.path(FEATURES_PATH)
             .configDir(CONFIG_PATH)
             .tags("@test", "~@disabled")
-            .outputCucumberJson(true)
+            .reportDir(REPORT_DIR)
+            // .outputCucumberJson(true)
             .parallel(4);
 
     assertEquals(0, results.getFailCount(), results.getErrorMessages());

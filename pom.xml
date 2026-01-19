@@ -66,7 +66,6 @@
         <karate.version>1.5.2</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
-        <maven-cucumber-reporting.version>5.7.8</maven-cucumber-reporting.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
@@ -288,28 +287,6 @@
                             <DOCKER_IMAGE>${project.artifactId}</DOCKER_IMAGE>
                         </environmentVariables>
                     </configuration>
-                </plugin>
-                <!-- Karate Report -->
-                <plugin>
-                    <groupId>net.masterthought</groupId>
-                    <artifactId>maven-cucumber-reporting</artifactId>
-                    <version>${maven-cucumber-reporting.version}</version>
-                    <executions>
-                        <execution>
-                            <id>karate-reports</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>generate</goal>
-                            </goals>
-                            <configuration>
-                                <projectName>Safecube</projectName>
-                                <jsonFiles>
-                                    <param>target/karate-reports/*.json</param>
-                                </jsonFiles>
-                                <outputDirectory>target/karate-html-report</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -593,10 +570,6 @@
                             </includes>
                         </configuration>
                     </plugin>
-                    <plugin>
-                        <groupId>net.masterthought</groupId>
-                        <artifactId>maven-cucumber-reporting</artifactId>
-                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -632,10 +605,6 @@
                                 <exclude>integration/**/*IntegrationTest</exclude>
                             </excludes>
                         </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>net.masterthought</groupId>
-                        <artifactId>maven-cucumber-reporting</artifactId>
                     </plugin>
                 </plugins>
             </build>
