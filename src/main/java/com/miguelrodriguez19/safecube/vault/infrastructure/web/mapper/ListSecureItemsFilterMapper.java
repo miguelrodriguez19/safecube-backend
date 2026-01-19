@@ -17,11 +17,18 @@ public class ListSecureItemsFilterMapper {
 
   public ListSecureItemsFilter from(
       final Instant since,
-      final ItemTypeDto type,
+      final String type,
       final Set<String> labels,
       final boolean includeDeleted,
       final Integer limit,
       final Order order) {
-    return new ListSecureItemsFilter(since, type, labels, includeDeleted, limit, order);
+
+    return new ListSecureItemsFilter(
+        since,
+        type != null ? ItemTypeDto.valueOf(type) : null,
+        labels,
+        includeDeleted,
+        limit,
+        order);
   }
 }

@@ -26,6 +26,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.List
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.response.SecureItemSummaryResponse;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper.ListSecureItemsFilterMapper;
+import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidItemType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.time.Clock;
@@ -87,7 +88,7 @@ public class VaultController {
 
   @GetMapping("/{itemId}")
   public ResponseEntity<SecureItemResponse> get(
-      @AuthenticationPrincipal final UUID accountId, @PathVariable final UUID itemId) {
+      @AuthenticationPrincipal final UUID accountId, @PathVariable("itemId") final UUID itemId) {
 
     final var result = getUseCase.execute(new GetSecureItemQuery(accountId, itemId));
 
@@ -116,7 +117,7 @@ public class VaultController {
   public ResponseEntity<ListSecureItemsResponse> list(
       @AuthenticationPrincipal final UUID accountId,
       @RequestParam(required = false) final Instant since,
-      @RequestParam(required = false) final ItemTypeDto type,
+      @RequestParam(required = false) @ValidItemType final String type,
       @RequestParam(required = false) final Set<String> labels,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
       @RequestParam(required = false) @Positive final Integer limit,
@@ -153,7 +154,7 @@ public class VaultController {
   @PutMapping("/{itemId}")
   public ResponseEntity<UpdateSecureItemResult> update(
       @AuthenticationPrincipal final UUID accountId,
-      @PathVariable final UUID itemId,
+      @PathVariable("itemId") final UUID itemId,
       @Valid @RequestBody final UpdateSecureItemRequest request) {
 
     final var itemType = ItemTypeDto.valueOf(request.itemType());
@@ -180,7 +181,7 @@ public class VaultController {
   @DeleteMapping("/{itemId}")
   public ResponseEntity<DeleteSecureItemResult> delete(
       @AuthenticationPrincipal final UUID accountId,
-      @PathVariable final UUID itemId,
+      @PathVariable("itemId") final UUID itemId,
       @Valid @RequestBody final DeleteSecureItemRequest request) {
 
     final var result =
