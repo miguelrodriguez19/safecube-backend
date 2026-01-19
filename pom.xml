@@ -61,12 +61,12 @@
         <!-- Explicit versions for non-Spring-managed dependencies -->
         <antlr4-runtime.version>4.13.2</antlr4-runtime.version>
         <archunit.version>1.4.1</archunit.version>
-        <cucumber.reporting.version>5.7.8</cucumber.reporting.version>
         <google-java-format.version>1.21.0</google-java-format.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <karate.version>1.4.1</karate.version>
+        <karate.version>1.5.2</karate.version>
         <maven-exec.version>3.6.2</maven-exec.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven-cucumber-reporting.version>5.7.8</maven-cucumber-reporting.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
@@ -138,12 +138,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Commons utilities (StringUtils, Validate, etc.) -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
         <!-- Lombok (compile-time only) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -181,17 +175,9 @@
 
         <!-- Acceptance tests (HTTP, E2E) -->
         <dependency>
-            <groupId>com.intuit.karate</groupId>
+            <groupId>io.karatelabs</groupId>
             <artifactId>karate-junit5</artifactId>
             <version>${karate.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Cucumber-style reports for Karate -->
-        <dependency>
-            <groupId>net.masterthought</groupId>
-            <artifactId>cucumber-reporting</artifactId>
-            <version>${cucumber.reporting.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -301,6 +287,28 @@
                             <DOCKER_IMAGE>${project.artifactId}</DOCKER_IMAGE>
                         </environmentVariables>
                     </configuration>
+                </plugin>
+                <!-- Karate Report -->
+                <plugin>
+                    <groupId>net.masterthought</groupId>
+                    <artifactId>maven-cucumber-reporting</artifactId>
+                    <version>${maven-cucumber-reporting.version}</version>
+                    <executions>
+                        <execution>
+                            <id>karate-reports</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                            <configuration>
+                                <projectName>Safecube</projectName>
+                                <jsonFiles>
+                                    <param>target/karate-reports/*.json</param>
+                                </jsonFiles>
+                                <outputDirectory>target/karate-html-report</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -584,6 +592,10 @@
                             </includes>
                         </configuration>
                     </plugin>
+                    <plugin>
+                        <groupId>net.masterthought</groupId>
+                        <artifactId>maven-cucumber-reporting</artifactId>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -619,6 +631,10 @@
                                 <exclude>integration/**/*IntegrationTest</exclude>
                             </excludes>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>net.masterthought</groupId>
+                        <artifactId>maven-cucumber-reporting</artifactId>
                     </plugin>
                 </plugins>
             </build>
