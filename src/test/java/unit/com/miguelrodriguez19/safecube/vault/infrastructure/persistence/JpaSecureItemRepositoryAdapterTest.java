@@ -129,31 +129,9 @@ class JpaSecureItemRepositoryAdapterTest {
     final var accountId = UUID.randomUUID();
     final var filter = getFilter(ItemTypeDto.PASSWORD);
 
-    final var entity =
-        new SecureItemJpaEntity(
-            UUID.randomUUID(),
-            accountId,
-            ItemType.PASSWORD.name(),
-            1,
-            "GitHub",
-            "payload".getBytes(),
-            1L,
-            Instant.now(),
-            Instant.now(),
-            null);
+    final var entity = getSecureItemJpaEntity(UUID.randomUUID());
 
-    final var domainItem =
-        SecureItem.restore(
-            entity.getItemId(),
-            entity.getAccountId(),
-            ItemType.PASSWORD,
-            1,
-            "GitHub",
-            entity.getPayload(),
-            1L,
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            null);
+    final var domainItem = getSecureItem(entity);
 
     final var entitiesPage = new PageImpl<>(List.of(entity));
     when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
@@ -216,8 +194,114 @@ class JpaSecureItemRepositoryAdapterTest {
     verify(jpaRepository).save(entity);
   }
 
+  @Test
+  void shouldFindItemsByAccount_withoutAnyOptionalFilters() {
+    final var accountId = UUID.randomUUID();
+    final var filter =
+        new ListSecureItemsFilter(
+            null, null, Set.of(), false, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+
+    final var entity = getSecureItemJpaEntity(accountId);
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(getSecureItem(entity));
+
+    final var result = target.findFilteredByAccount(accountId, filter);
+
+    assertThat(result).hasSize(1);
+    verify(jpaRepository).findAll(any(Specification.class), any(Pageable.class));
+  }
+
+  @Test
+  void shouldFindItemsByAccount_withSinceFilter() {
+    final var accountId = UUID.randomUUID();
+    final var since = Instant.now().minusSeconds(60);
+
+    final var filter =
+        new ListSecureItemsFilter(
+            since, null, Set.of(), false, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+
+    final var entity = getSecureItemJpaEntity(accountId);
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(getSecureItem(entity));
+
+    final var result = target.findFilteredByAccount(accountId, filter);
+
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  void shouldFindItemsByAccount_includingDeleted() {
+    final var accountId = UUID.randomUUID();
+
+    final var filter =
+        new ListSecureItemsFilter(
+            null, null, Set.of(), true, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+
+    final var entity = getSecureItemJpaEntity(accountId);
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(getSecureItem(entity));
+
+    final var result = target.findFilteredByAccount(accountId, filter);
+
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  void shouldFindItemsByAccount_withAllFilters() {
+    final var accountId = UUID.randomUUID();
+
+    final var filter =
+        new ListSecureItemsFilter(
+            Instant.now().minusSeconds(120),
+            ItemTypeDto.PASSWORD,
+            Set.of(),
+            false,
+            10,
+            ListSecureItemsFilter.Order.UPDATED_AT_DESC);
+
+    final var entity = getSecureItemJpaEntity(accountId);
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(getSecureItem(entity));
+
+    final var result = target.findFilteredByAccount(accountId, filter);
+
+    assertThat(result).hasSize(1);
+  }
+
   private ListSecureItemsFilter getFilter(final ItemTypeDto type) {
     return new ListSecureItemsFilter(
         null, type, Set.of(), false, 100, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+  }
+
+  private SecureItemJpaEntity getSecureItemJpaEntity(UUID accountId) {
+    return new SecureItemJpaEntity(
+        UUID.randomUUID(),
+        accountId,
+        ItemType.PASSWORD.name(),
+        1,
+        "GitHub",
+        "payload".getBytes(),
+        1L,
+        Instant.now(),
+        Instant.now(),
+        null);
+  }
+
+  private SecureItem getSecureItem(SecureItemJpaEntity entity) {
+    return SecureItem.restore(
+        entity.getItemId(),
+        entity.getAccountId(),
+        ItemType.PASSWORD,
+        entity.getSchemaVersion(),
+        entity.getDisplayHint(),
+        entity.getPayload(),
+        entity.getPayloadVersion(),
+        entity.getCreatedAt(),
+        entity.getUpdatedAt(),
+        null);
   }
 }
