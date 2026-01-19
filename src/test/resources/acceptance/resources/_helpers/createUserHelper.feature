@@ -1,6 +1,7 @@
 Feature: createUser helper
 
   Scenario:
+    * def credentials = __arg
     * print credentials
 
     # Register the user
