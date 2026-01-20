@@ -1,4 +1,4 @@
-package unit.com.miguelrodriguez19.safecube.vault.domain.model;
+package unit.com.miguelrodriguez19.safecube.vault.domain.model.secureitem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
