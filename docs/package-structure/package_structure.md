@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 19-01-2026 08:23:20
+Updated: 20-01-2026 12:25:01
 
 ```
 safecube-backend/
@@ -28,11 +28,13 @@ safecube-backend/
 │   │   │   ├── adr-001-auth-authentication-and-session.md
 │   │   │   ├── adr-002-user-profile-lifecycle.md
 │   │   │   ├── adr-003-account-deactivation-deferred-deletion.md
-│   │   │   └── adr_004_vault_data_crypto_recovery_strategy.md
+│   │   │   ├── adr-004-vault-data-crypto-recovery-strategy.md
+│   │   │   └── adr-005-dynamic-filtering-with-jpa-specifications.md
 │   │   ├── tests/
 │   │   │   └── architecture_tests_safe_cube_backend.md
 │   │   │   │   ├── database_strategy.md
-│   │   └── safe_cube_backend_manifiesto_v_1.md
+│   │   ├── safe_cube_backend_manifiesto_v_1.md
+│   │   └── web_validation_strategy.md
 │   ├── glossary/
 │   │   └── ubiquitous_glossary.md
 │   ├── package-structure/
@@ -170,60 +172,87 @@ safecube-backend/
 │   │   │               ├── vault/
 │   │   │               │   ├── application/
 │   │   │               │   │   ├── dto/
-│   │   │               │   │   │   ├── command/
-│   │   │               │   │   │   │   ├── CreateSecureItemCommand.java
-│   │   │               │   │   │   │   ├── DeleteSecureItemCommand.java
-│   │   │               │   │   │   │   └── UpdateSecureItemCommand.java
-│   │   │               │   │   │   ├── query/
-│   │   │               │   │   │   │   ├── GetSecureItemQuery.java
-│   │   │               │   │   │   │   ├── ListSecureItemsFilter.java
-│   │   │               │   │   │   │   └── ListSecureItemsQuery.java
-│   │   │               │   │   │   ├── result/
-│   │   │               │   │   │   │   ├── CreateSecureItemResult.java
-│   │   │               │   │   │   │   ├── DeleteSecureItemResult.java
-│   │   │               │   │   │   │   ├── GetSecureItemResult.java
-│   │   │               │   │   │   │   ├── ListSecureItemsResult.java
-│   │   │               │   │   │   │   └── UpdateSecureItemResult.java
-│   │   │               │   │   │   └── ItemTypeDto.java
+│   │   │               │   │   │   ├── keymaterial/
+│   │   │               │   │   │   │   ├── GetVaultKeyMaterialQuery.java
+│   │   │               │   │   │   │   ├── GetVaultKeyMaterialResult.java
+│   │   │               │   │   │   │   ├── InitVaultKeyMaterialCommand.java
+│   │   │               │   │   │   │   └── UpdateMasterWrappedKekCommand.java
+│   │   │               │   │   │   └── secureitem/
+│   │   │               │   │   │       ├── command/
+│   │   │               │   │   │       │   ├── CreateSecureItemCommand.java
+│   │   │               │   │   │       │   ├── DeleteSecureItemCommand.java
+│   │   │               │   │   │       │   └── UpdateSecureItemCommand.java
+│   │   │               │   │   │       ├── query/
+│   │   │               │   │   │       │   ├── GetSecureItemQuery.java
+│   │   │               │   │   │       │   ├── ListSecureItemsFilter.java
+│   │   │               │   │   │       │   └── ListSecureItemsQuery.java
+│   │   │               │   │   │       ├── result/
+│   │   │               │   │   │       │   ├── CreateSecureItemResult.java
+│   │   │               │   │   │       │   ├── DeleteSecureItemResult.java
+│   │   │               │   │   │       │   ├── GetSecureItemResult.java
+│   │   │               │   │   │       │   ├── ListSecureItemsResult.java
+│   │   │               │   │   │       │   └── UpdateSecureItemResult.java
+│   │   │               │   │   │       └── ItemTypeDto.java
 │   │   │               │   │   ├── error/
-│   │   │               │   │   │   └── VaultError.java
+│   │   │               │   │   │   ├── VaultError.java
+│   │   │               │   │   │   └── VaultKeyMaterialError.java
 │   │   │               │   │   ├── mapper/
 │   │   │               │   │   │   └── ItemTypeMapper.java
 │   │   │               │   │   ├── port/
 │   │   │               │   │   │   └── out/
-│   │   │               │   │   │       └── SecureItemRepository.java
+│   │   │               │   │   │       ├── SecureItemRepository.java
+│   │   │               │   │   │       └── VaultKeyMaterialRepository.java
 │   │   │               │   │   └── usecase/
-│   │   │               │   │       ├── CreateSecureItemUseCase.java
-│   │   │               │   │       ├── DeleteSecureItemUseCase.java
-│   │   │               │   │       ├── GetSecureItemUseCase.java
-│   │   │               │   │       ├── ListSecureItemsUseCase.java
-│   │   │               │   │       └── UpdateSecureItemUseCase.java
+│   │   │               │   │       ├── keymaterial/
+│   │   │               │   │       │   ├── GetVaultKeyMaterialUseCase.java
+│   │   │               │   │       │   ├── InitVaultKeyMaterialUseCase.java
+│   │   │               │   │       │   └── UpdateMasterWrappedKekUseCase.java
+│   │   │               │   │       └── secureitem/
+│   │   │               │   │           ├── CreateSecureItemUseCase.java
+│   │   │               │   │           ├── DeleteSecureItemUseCase.java
+│   │   │               │   │           ├── GetSecureItemUseCase.java
+│   │   │               │   │           ├── ListSecureItemsUseCase.java
+│   │   │               │   │           └── UpdateSecureItemUseCase.java
 │   │   │               │   ├── domain/
 │   │   │               │   │   ├── exception/
-│   │   │               │   │   │   └── InvalidPayloadException.java
+│   │   │               │   │   │   ├── InvalidPayloadException.java
+│   │   │               │   │   │   ├── InvalidVaultKeyMaterialException.java
+│   │   │               │   │   │   └── InvalidWrappedKekException.java
 │   │   │               │   │   └── model/
-│   │   │               │   │       ├── ItemType.java
-│   │   │               │   │       └── SecureItem.java
+│   │   │               │   │       ├── keymaterial/
+│   │   │               │   │       │   └── VaultKeyMaterial.java
+│   │   │               │   │       └── secureitem/
+│   │   │               │   │           ├── ItemType.java
+│   │   │               │   │           └── SecureItem.java
 │   │   │               │   └── infrastructure/
 │   │   │               │       ├── persistence/
 │   │   │               │       │   ├── jpa/
 │   │   │               │       │   │   ├── SecureItemJpaEntity.java
-│   │   │               │       │   │   └── SecureItemJpaRepository.java
+│   │   │               │       │   │   ├── SecureItemJpaRepository.java
+│   │   │               │       │   │   ├── VaultKeyMaterialJpaEntity.java
+│   │   │               │       │   │   └── VaultKeyMaterialJpaRepository.java
 │   │   │               │       │   ├── mapper/
-│   │   │               │       │   │   └── SecureItemMapper.java
+│   │   │               │       │   │   ├── SecureItemMapper.java
+│   │   │               │       │   │   └── VaultKeyMaterialMapper.java
 │   │   │               │       │   ├── specification/
 │   │   │               │       │   │   └── SecureItemSpecifications.java
-│   │   │               │       │   └── JpaSecureItemRepositoryAdapter.java
+│   │   │               │       │   ├── JpaSecureItemRepositoryAdapter.java
+│   │   │               │       │   └── JpaVaultKeyMaterialRepositoryAdapter.java
 │   │   │               │       └── web/
 │   │   │               │           ├── dto/
-│   │   │               │           │   ├── request/
-│   │   │               │           │   │   ├── CreateSecureItemRequest.java
-│   │   │               │           │   │   ├── DeleteSecureItemRequest.java
-│   │   │               │           │   │   └── UpdateSecureItemRequest.java
-│   │   │               │           │   └── response/
-│   │   │               │           │       ├── ListSecureItemsResponse.java
-│   │   │               │           │       ├── SecureItemResponse.java
-│   │   │               │           │       └── SecureItemSummaryResponse.java
+│   │   │               │           │   ├── keymaterial/
+│   │   │               │           │   │   ├── InitVaultKeyMaterialRequest.java
+│   │   │               │           │   │   ├── UpdateMasterWrappedKekRequest.java
+│   │   │               │           │   │   └── VaultKeyMaterialResponse.java
+│   │   │               │           │   └── secureitem/
+│   │   │               │           │       ├── request/
+│   │   │               │           │       │   ├── CreateSecureItemRequest.java
+│   │   │               │           │       │   ├── DeleteSecureItemRequest.java
+│   │   │               │           │       │   └── UpdateSecureItemRequest.java
+│   │   │               │           │       └── response/
+│   │   │               │           │           ├── ListSecureItemsResponse.java
+│   │   │               │           │           ├── SecureItemResponse.java
+│   │   │               │           │           └── SecureItemSummaryResponse.java
 │   │   │               │           ├── mapper/
 │   │   │               │           │   └── ListSecureItemsFilterMapper.java
 │   │   │               │           ├── validation/
@@ -232,7 +261,8 @@ safecube-backend/
 │   │   │               │           │   │   └── ValidOrder.java
 │   │   │               │           │   ├── ItemTypeValidator.java
 │   │   │               │           │   └── OrderValidator.java
-│   │   │               │           └── VaultController.java
+│   │   │               │           ├── VaultController.java
+│   │   │               │           └── VaultKeyMaterialController.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
 │   │       ├── database/
@@ -280,7 +310,8 @@ safecube-backend/
 │       │   │               ├── vault/
 │       │   │               │   └── infrastructure/
 │       │   │               │       └── persistence/
-│       │   │               │           └── JpaSecureItemRepositoryAdapterIntegrationTest.java
+│       │   │               │           ├── JpaSecureItemRepositoryAdapterIntegrationTest.java
+│       │   │               │           └── JpaVaultKeyMaterialRepositoryAdapterIntegrationTest.java
 │       │   │               └── SafeCubeBackendApplicationIntegrationTest.java
 │       │   └── unit/
 │       │       ├── annotation/
@@ -336,19 +367,30 @@ safecube-backend/
 │       │                       │   ├── mapper/
 │       │                       │   │   └── ItemTypeMapperTest.java
 │       │                       │   └── usecase/
-│       │                       │       ├── CreateSecureItemUseCaseTest.java
-│       │                       │       ├── DeleteSecureItemUseCaseTest.java
-│       │                       │       ├── GetSecureItemUseCaseTest.java
-│       │                       │       ├── ListSecureItemsUseCaseTest.java
-│       │                       │       └── UpdateSecureItemUseCaseTest.java
+│       │                       │       ├── keymaterial/
+│       │                       │       │   ├── GetVaultKeyMaterialUseCaseTest.java
+│       │                       │       │   ├── InitVaultKeyMaterialUseCaseTest.java
+│       │                       │       │   └── UpdateMasterWrappedKekUseCaseTest.java
+│       │                       │       └── secureitem/
+│       │                       │           ├── CreateSecureItemUseCaseTest.java
+│       │                       │           ├── DeleteSecureItemUseCaseTest.java
+│       │                       │           ├── GetSecureItemUseCaseTest.java
+│       │                       │           ├── ListSecureItemsUseCaseTest.java
+│       │                       │           └── UpdateSecureItemUseCaseTest.java
 │       │                       ├── domain/
 │       │                       │   └── model/
-│       │                       │       └── SecureItemTest.java
+│       │                       │       ├── keymaterial/
+│       │                       │       │   └── VaultKeyMaterialTest.java
+│       │                       │       └── secureitem/
+│       │                       │           └── SecureItemTest.java
 │       │                       └── infrastructure/
 │       │                           ├── persistence/
+│       │                           │   ├── mapper/
+│       │                           │   │   └── VaultKeyMaterialMapperTest.java
 │       │                           │   ├── specification/
 │       │                           │   │   └── SecureItemSpecificationsTest.java
-│       │                           │   └── JpaSecureItemRepositoryAdapterTest.java
+│       │                           │   ├── JpaSecureItemRepositoryAdapterTest.java
+│       │                           │   └── JpaVaultKeyMaterialRepositoryAdapterTest.java
 │       │                           └── web/
 │       │                               └── validation/
 │       │                                   ├── ItemTypeValidatorTest.java
@@ -373,13 +415,17 @@ safecube-backend/
 │           │   │   │   ├── secure-item-list-filters.feature
 │           │   │   │   ├── secure-item-list-ordering.feature
 │           │   │   │   ├── secure-item-list.feature
-│           │   │   │   └── secure-item-update.feature
+│           │   │   │   ├── secure-item-update.feature
+│           │   │   │   ├── vault-key-get.feature
+│           │   │   │   ├── vault-key-init.feature
+│           │   │   │   └── vault-key-rotate-master.feature
 │           │   │   ├── actuatorHealth.feature
 │           │   │   └── security.feature
 │           │   └── resources/
 │           │       ├── _helpers/
 │           │       │   ├── createSecureItemHelper.feature
 │           │       │   ├── createUserHelper.feature
+│           │       │   ├── initVaultKeyMaterialHelper.feature
 │           │       │   ├── loginHelper.feature
 │           │       │   └── registerHelper.feature
 │           │       ├── config/
