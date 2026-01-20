@@ -139,11 +139,9 @@ public class VaultKeyMaterial {
     }
   }
 
-  private static void validateKdf(int kdfMemoryKib, int kdfIterations, int kdfParallelism, int kdfOutputLen) {
-    if (kdfMemoryKib <= 0
-            || kdfIterations <= 0
-            || kdfParallelism <= 0
-            || kdfOutputLen <= 0) {
+  private static void validateKdf(
+      int kdfMemoryKib, int kdfIterations, int kdfParallelism, int kdfOutputLen) {
+    if (kdfMemoryKib <= 0 || kdfIterations <= 0 || kdfParallelism <= 0 || kdfOutputLen <= 0) {
       throw new InvalidVaultKeyMaterialException("All KDF numeric parameters must be > 0");
     }
   }
