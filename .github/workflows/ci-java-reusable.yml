@@ -27,17 +27,34 @@ on:
 
 jobs:
 
-  ###################################################################
-  # 1. Build, lint & test (always runs)                             #
-  ###################################################################
+  ############### 1. Version guard (optional) ###############
+  version-guard:
+    name: 'Version guard'
+    if: ${{ inputs.run-version-check }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+      - name: Make script executable
+        run: chmod +x .github/scripts/check-version.sh
+      - name: Check version bump
+        run: ./.github/scripts/check-version.sh
+
+
+  ############### 2. Build, lint & test (always runs) ###############
   build-test:
     name: 'Build, Lint & Test'
+    needs: [ version-guard ]
+    if: ${{ !inputs.run-version-check || needs.version-guard.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
       matrix:
-        jdk: [21]
+        jdk: [ 21 ]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -78,34 +95,8 @@ jobs:
           name: executable-jar
           path: target/safecube-backend-executable.jar
 
-  ###################################################################
-  # 2. Version guard (optional)                                     #
-  ###################################################################
-  version-guard:
-    name: 'Version guard'
-    if: ${{ inputs.run-version-check }}
-    needs: build-test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Install xmllint (libxml2-utils)
-        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
-
-      - name: Make script executable
-        run: chmod +x .github/scripts/check-version.sh
-
-      - name: Check version bump
-        run: ./.github/scripts/check-version.sh
-
-
-  ###################################################################
-  # 3. Dependency security scan (optional)                          #
-  ###################################################################
+  ############### 3. Dependency security scan (optional) ###############
   dependency-scan:
     name: 'Dependency security scan'
     if: ${{ inputs.run-security-scan && github.repository == 'miguelrodriguez19/safecube-backend' }}
@@ -124,9 +115,7 @@ jobs:
         uses: actions/dependency-review-action@v3
 
 
-  ###################################################################
-  # 4. CodeQL code scan (optional)                                  #
-  ###################################################################
+  ############### 4. CodeQL code scan (optional) ###############
   codeql-scan:
     name: 'CodeQL scan'
     if: ${{ inputs.run-code-scan }}

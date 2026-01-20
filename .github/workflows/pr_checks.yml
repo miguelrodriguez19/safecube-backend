@@ -7,9 +7,7 @@ on:
 
 jobs:
 
-  ###################################################################
-  # 1. CI + security gate (reusable workflow)                       #
-  ###################################################################
+  ############### CI + security gate (reusable workflow) ###############
   ci:
     name: 'CI / Security checks'
     permissions:
@@ -24,9 +22,7 @@ jobs:
       run-code-scan: true
 
 
-  ###################################################################
-  # 2. Documentation consistency check                              #
-  ###################################################################
+  ############### Documentation consistency check ###############
   docs-consistency-check:
     name: 'Docs consistency check (package structure)'
     runs-on: ubuntu-latest
