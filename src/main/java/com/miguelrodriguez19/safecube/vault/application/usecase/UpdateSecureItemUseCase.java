@@ -6,7 +6,7 @@ import com.miguelrodriguez19.safecube.vault.application.dto.result.UpdateSecureI
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
 import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

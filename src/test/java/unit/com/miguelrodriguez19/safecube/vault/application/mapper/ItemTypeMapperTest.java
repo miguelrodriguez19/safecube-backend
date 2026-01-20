@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;

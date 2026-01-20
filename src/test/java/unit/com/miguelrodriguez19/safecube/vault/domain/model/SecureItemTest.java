@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidPayloadException;
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

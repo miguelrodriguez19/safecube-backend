@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.vault.domain.model;
+package com.miguelrodriguez19.safecube.vault.domain.model.secureitem;
 
 import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidPayloadException;
 import java.time.Instant;

@@ -9,8 +9,8 @@ import com.miguelrodriguez19.safecube.vault.application.dto.result.DeleteSecureI
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.DeleteSecureItemUseCase;
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

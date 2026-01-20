@@ -1,4 +1,4 @@
-package com.miguelrodriguez19.safecube.vault.domain.model;
+package com.miguelrodriguez19.safecube.vault.domain.model.secureitem;
 
 public enum ItemType {
   PASSWORD,
