@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.application.port.out;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import java.util.List;
 import java.util.UUID;

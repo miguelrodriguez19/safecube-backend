@@ -3,7 +3,7 @@ package unit.com.miguelrodriguez19.safecube.vault.application.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
 import java.util.Arrays;

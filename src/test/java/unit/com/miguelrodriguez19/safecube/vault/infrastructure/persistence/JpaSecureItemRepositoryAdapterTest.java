@@ -5,8 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.ItemTypeDto;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaSecureItemRepositoryAdapter;
