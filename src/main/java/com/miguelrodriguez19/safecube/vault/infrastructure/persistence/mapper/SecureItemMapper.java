@@ -1,7 +1,7 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.persistence.mapper;
 
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.SecureItemJpaEntity;
 import org.springframework.stereotype.Component;
 

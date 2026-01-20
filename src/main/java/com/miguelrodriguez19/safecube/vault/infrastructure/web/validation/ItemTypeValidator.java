@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.validation;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.ItemTypeDto;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidItemType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

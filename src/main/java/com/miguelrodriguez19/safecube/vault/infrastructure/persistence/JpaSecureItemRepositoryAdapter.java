@@ -1,8 +1,8 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.persistence;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.SecureItemJpaRepository;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.mapper.SecureItemMapper;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.specification.SecureItemSpecifications;

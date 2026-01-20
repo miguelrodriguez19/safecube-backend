@@ -1,6 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.validation;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter.Order;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidOrder;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

@@ -16,7 +16,8 @@ function fn() {
         registerHelper: classPath + '/resources/_helpers/registerHelper.feature',
         loginHelper: classPath + '/resources/_helpers/loginHelper.feature',
         createUserHelper: classPath + '/resources/_helpers/createUserHelper.feature',
-        createSecureItemHelper: classPath + '/resources/_helpers/createSecureItemHelper.feature'
+        createSecureItemHelper: classPath + '/resources/_helpers/createSecureItemHelper.feature',
+        initVaultKeyMaterialHelper: classPath + '/resources/_helpers/initVaultKeyMaterialHelper.feature'
     };
 
     karate.configure('connectTimeout', 500000);

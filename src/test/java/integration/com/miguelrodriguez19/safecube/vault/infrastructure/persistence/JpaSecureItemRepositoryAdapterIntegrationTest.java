@@ -2,10 +2,10 @@ package integration.com.miguelrodriguez19.safecube.vault.infrastructure.persiste
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter;
-import com.miguelrodriguez19.safecube.vault.application.dto.query.ListSecureItemsFilter.Order;
-import com.miguelrodriguez19.safecube.vault.domain.model.ItemType;
-import com.miguelrodriguez19.safecube.vault.domain.model.SecureItem;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter;
+import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter.Order;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
+import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaSecureItemRepositoryAdapter;
 import integration.annotation.IntegrationTest;
 import java.time.Instant;
