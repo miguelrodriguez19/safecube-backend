@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 20-01-2026 12:25:01
+Updated: 22-01-2026 02:46:20
 
 ```
 safecube-backend/
@@ -120,6 +120,10 @@ safecube-backend/
 │   │   │               │           │   └── RegisterAccountRequest.java
 │   │   │               │           └── AuthController.java
 │   │   │               ├── shared/
+│   │   │               │   ├── config/
+│   │   │               │   │   └── openapi/
+│   │   │               │   │       ├── OpenApiConfig.java
+│   │   │               │   │       └── OpenApiDefaultsConfig.java
 │   │   │               │   ├── exception/
 │   │   │               │   │   ├── model/
 │   │   │               │   │   │   └── ErrorResponse.java
