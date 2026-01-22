@@ -14,16 +14,16 @@
 │   │   │   ├── run-acceptance-tests:true   # Control acceptance tests execution
 │   │   │   └── run-mutation-tests:true     # Control mutation test execution
 │   │   └── jobs:
+│   │       ├── version-guard (if run-version-check)
+│   │       │   └── ./scripts/check-version.sh
 │   │       ├── build-test
 │   │       │   ├── 1. Checkout
 │   │       │   ├── 2. Set up java + cache (composite java-steps)
 │   │       │   ├── 3. mvn spotless:check
-│   │       │   ├── 4. mvn verify (adds -Pacceptance if run-acceptance-tests)
-│   │       │   ├── 5. mvn -Pmutation (if run-mutation-tests)
+│   │       │   ├── 4. mvn verify (adds '-Pacceptance' if run-acceptance-tests)
+│   │       │   ├── 5. mvn verify -Pmutation (if run-mutation-tests)
 │   │       │   ├── 6. Upload reports (JaCoCo & Spotless)
 │   │       │   └── 7. Upload executable JAR
-│   │       ├── version-guard (if run-version-check)
-│   │       │   └── ./scripts/check-version.sh
 │   │       ├── dependency-scan (if run-security-scan)
 │   │       │   └── dependency-review-action
 │   │       └── codeql-scan (if run-code-scan)
@@ -39,10 +39,8 @@
 │   │       │           ├── run-version-check: true
 │   │       │           ├── run-security-scan: true
 │   │       │           └── run-code-scan: true
-│   │       ├── docs-consistency-check
-│   │       │   └── ./scripts/check-package-structure.sh
-│   │       └── secret-scan
-│   │           └── GitHub native secret scanning (repo-level config)
+│   │       └── docs-consistency-check
+│   │           └── ./scripts/check-package-structure.sh
 │   │
 │   └── release-main.yml            # Release + Container publish + Deploy
 │       ├── on: push
@@ -58,20 +56,26 @@
 │           │           ├── run-acceptance-tests: false
 │           │           └── run-mutation-tests: false
 │           │
-│           ├── release
+│           ├── create-release-tag
 │           │   ├── needs: ci-lite
+│           │   ├── outputs.version: ${{ steps.version.outputs.version }}
 │           │   └── steps:
-│           │       ├── 1. checkout
+│           │       ├── 1. Checkout
 │           │       ├── 2. Set up Git identity
 │           │       ├── 3. Set up java + cache (composite java-steps)
-│           │       ├── 4. Read and clean (-SNAPSHOT) version from pom.xml
-│           │       ├── 5. Create Git tag
-│           │       ├── 6. Log in to GHCR
-│           │       ├── 7. Download executable JAR
-│           │       └── 8. Build & push Docker image (ghcr.io/miguelrodriguez19/safecube-backend)
+│           │       ├── 4. Resolve release version from pom.xml
+│           │       └── 5. Create and push Git tag
+│           │
+│           ├── build-container-image
+│           │   ├── needs: create-release-tag
+│           │   └── steps:
+│           │       ├── 1. Checkout
+│           │       ├── 2. Log in to GHCR
+│           │       ├── 3. Download executable JAR
+│           │       └── 4. Build & push Docker image (ghcr.io/miguelrodriguez19/safecube-backend:${{ needs.create-release-tag.outputs.version }})
 │           │
 │           └── deploy-production
-│               ├── needs: release
+│               ├── needs: build-container-image
 │               ├── environment: production
 │               └── steps: Deploy on Koyeb
 │                   ├── Install Koyeb CLI

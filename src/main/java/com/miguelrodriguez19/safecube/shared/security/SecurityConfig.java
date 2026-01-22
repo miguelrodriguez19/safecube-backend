@@ -25,7 +25,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private static final String[] PUBLIC_ENDPOINTS =
-      new String[] {"/auth/register", "/auth/login", "/auth/refresh", "/actuator/health", "/error"};
+      new String[] {
+        "/auth/register",
+        "/auth/login",
+        "/auth/refresh",
+        "/actuator/health",
+        "/error",
+        "/v3/api-docs/**",
+        "/swagger-ui.html",
+        "/swagger-ui/**"
+      };
 
   @Bean
   public Clock clock() {

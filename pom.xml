@@ -19,7 +19,7 @@
 
     <groupId>com.miguelrodriguez19.safecube</groupId>
     <artifactId>safecube-backend</artifactId>
-    <version>0.0.19-SNAPSHOT</version>
+    <version>0.0.20-SNAPSHOT</version>
 
     <name>SafeCube Backend</name>
     <description>Core backend service for SafeCube</description>
@@ -72,6 +72,7 @@
         <pitest.version>1.22.0</pitest.version>
         <pitest.junit5.plugin.version>1.2.3</pitest.junit5.plugin.version>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
+        <springdoc-openapi-starter-webmvc-ui.version>3.0.1</springdoc-openapi-starter-webmvc-ui.version>
     </properties>
 
     <dependencies>
@@ -152,6 +153,12 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- OpenApi -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
+        </dependency>
 
         <!-- ======================= -->
         <!-- Testing & Quality       -->
