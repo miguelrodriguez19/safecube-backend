@@ -13,6 +13,7 @@ import com.miguelrodriguez19.safecube.vault.application.usecase.keymaterial.Upda
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.keymaterial.InitVaultKeyMaterialRequest;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.keymaterial.UpdateMasterWrappedKekRequest;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.keymaterial.VaultKeyMaterialResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.time.Clock;
 import java.time.Instant;
@@ -44,6 +45,10 @@ public class VaultKeyMaterialController {
 
   private final Clock clock;
 
+  @Operation(
+      summary = "Initialize vault key material",
+      description =
+          "Stores wrapped key material and KDF parameters. All fields are opaque; the backend never derives or decrypts keys.")
   @PostMapping
   public ResponseEntity<Void> init(
       @AuthenticationPrincipal final UUID accountId,
@@ -75,6 +80,10 @@ public class VaultKeyMaterialController {
     };
   }
 
+  @Operation(
+      summary = "Get vault key material",
+      description =
+          "Returns the stored wrapped key material and crypto/KDF parameters for the authenticated account.")
   @GetMapping
   public ResponseEntity<VaultKeyMaterialResponse> get(
       @AuthenticationPrincipal final UUID accountId) {
@@ -105,6 +114,10 @@ public class VaultKeyMaterialController {
     };
   }
 
+  @Operation(
+      summary = "Update master-wrapped KEK",
+      description =
+          "Updates the master-wrapped key material after passphrase change. Does not modify existing vault items.")
   @PutMapping("/master")
   public ResponseEntity<Void> updateMaster(
       @AuthenticationPrincipal final UUID accountId,
