@@ -80,13 +80,16 @@ jobs:
         if: ${{ inputs.run-mutation-tests }}
         run: mvn -B verify -Pmutation
 
-      - name: Upload reports (JaCoCo / Spotless)
+      - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reports
+          name: reports-jdk-${{ matrix.jdk }}
+          if-no-files-found: ignore
+          retention-days: 7
           path: |
-            **/target/site/jacoco
+            **/target/pit-reports/**
+            **/target/karate-reports/**
             **/target/spotless*
 
       - name: Upload executable JAR
