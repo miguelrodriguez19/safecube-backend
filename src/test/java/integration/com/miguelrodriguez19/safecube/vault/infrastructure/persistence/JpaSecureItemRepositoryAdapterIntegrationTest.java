@@ -2,6 +2,8 @@ package integration.com.miguelrodriguez19.safecube.vault.infrastructure.persiste
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.miguelrodriguez19.safecube.auth.infrastructure.persistence.jpa.AuthAccountJpaEntity;
+import com.miguelrodriguez19.safecube.auth.infrastructure.persistence.jpa.AuthAccountJpaRepository;
 import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter;
 import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.query.ListSecureItemsFilter.Order;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
@@ -18,12 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 @IntegrationTest(profiles = {"jpa"})
 class JpaSecureItemRepositoryAdapterIntegrationTest {
 
+  @Autowired private AuthAccountJpaRepository authAccountJpaRepository;
+
   @Autowired private JpaSecureItemRepositoryAdapter target;
 
   @Test
   void shouldPersistAndRetrieveSecureItemByIdAndAccount() {
     final var now = Instant.now();
-    final var accountId = UUID.randomUUID();
+    final var accountId = insertAuthAccount();
     final var itemId = UUID.randomUUID();
 
     final var secureItem =
@@ -54,7 +58,7 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
   @Test
   void shouldListAllItemsByAccount_includingDeleted() {
     final var now = Instant.now();
-    final var accountId = UUID.randomUUID();
+    final var accountId = insertAuthAccount();
     final var filters =
         new ListSecureItemsFilter(null, null, Set.of(), false, 100, Order.DISPLAY_NAME_ASC);
 
@@ -92,7 +96,7 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
   @Test
   void shouldSoftDeleteSecureItem() {
     final var now = Instant.now();
-    final var accountId = UUID.randomUUID();
+    final var accountId = insertAuthAccount();
     final var itemId = UUID.randomUUID();
 
     final var secureItem =
@@ -107,5 +111,17 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
 
     assertThat(loaded).isNotNull();
     assertThat(loaded.getDeletedAt()).isEqualTo(deletedAt);
+  }
+
+  private UUID insertAuthAccount() {
+    final var accountId = UUID.randomUUID();
+    final var email = "%s@safecube.io".formatted(accountId);
+    final var now = Instant.now();
+
+    final var authAccountJpaEntity =
+        new AuthAccountJpaEntity(accountId, email, "password", true, now, null);
+    authAccountJpaRepository.save(authAccountJpaEntity);
+
+    return accountId;
   }
 }

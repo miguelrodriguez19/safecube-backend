@@ -2,6 +2,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  datasource:
+    hikari:
+      data-source-properties:
+        prepareThreshold: 0
 
 security:
   jwt:
