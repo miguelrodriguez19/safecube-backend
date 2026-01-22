@@ -26,6 +26,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.secureitem.re
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.mapper.ListSecureItemsFilterMapper;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidItemType;
 import com.miguelrodriguez19.safecube.vault.infrastructure.web.validation.annotation.ValidOrder;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.time.Clock;
@@ -59,6 +60,10 @@ public class VaultController {
 
   private final Clock clock;
 
+  @Operation(
+      summary = "Create vault item",
+      description =
+          "Creates a new vault item for the authenticated account. The payload is opaque encrypted data.")
   @PostMapping
   public ResponseEntity<CreateSecureItemResult> create(
       @AuthenticationPrincipal final UUID accountId,
@@ -86,6 +91,9 @@ public class VaultController {
     };
   }
 
+  @Operation(
+      summary = "Get vault item",
+      description = "Returns a vault item by id. The payload is opaque encrypted data.")
   @GetMapping("/{itemId}")
   public ResponseEntity<SecureItemResponse> get(
       @AuthenticationPrincipal final UUID accountId, @PathVariable("itemId") final UUID itemId) {
@@ -113,6 +121,10 @@ public class VaultController {
     };
   }
 
+  @Operation(
+      summary = "List vault items",
+      description =
+          "Lists vault items for sync/listing. Supports filters and optional inclusion of deleted items.")
   @GetMapping
   public ResponseEntity<ListSecureItemsResponse> list(
       @AuthenticationPrincipal final UUID accountId,
@@ -153,6 +165,10 @@ public class VaultController {
     };
   }
 
+  @Operation(
+      summary = "Update vault item",
+      description =
+          "Updates an existing vault item. The payload is opaque encrypted data. Conflicts may occur on stale updates.")
   @PutMapping("/{itemId}")
   public ResponseEntity<UpdateSecureItemResult> update(
       @AuthenticationPrincipal final UUID accountId,
@@ -180,6 +196,9 @@ public class VaultController {
     };
   }
 
+  @Operation(
+      summary = "Delete vault item (soft delete)",
+      description = "Soft-deletes a vault item for the authenticated account.")
   @DeleteMapping("/{itemId}")
   public ResponseEntity<DeleteSecureItemResult> delete(
       @AuthenticationPrincipal final UUID accountId, @PathVariable("itemId") final UUID itemId) {
