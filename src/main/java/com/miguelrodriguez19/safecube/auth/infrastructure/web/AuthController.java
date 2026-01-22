@@ -15,6 +15,7 @@ import com.miguelrodriguez19.safecube.auth.infrastructure.web.dto.AuthenticateAc
 import com.miguelrodriguez19.safecube.auth.infrastructure.web.dto.RefreshTokenRequest;
 import com.miguelrodriguez19.safecube.auth.infrastructure.web.dto.RegisterAccountRequest;
 import com.miguelrodriguez19.safecube.shared.result.Result;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.Clock;
@@ -46,6 +47,10 @@ public class AuthController {
   private final RefreshTokenHasher refreshTokenHasher;
   private final Clock clock;
 
+  @Operation(
+      summary = "Register a new account",
+      description = "Creates an authentication account using email and password.",
+      security = {})
   @PostMapping("/register")
   public ResponseEntity<RegisterAccountResult> register(
       @Valid @NotNull @RequestBody final RegisterAccountRequest request) {
@@ -63,6 +68,10 @@ public class AuthController {
     };
   }
 
+  @Operation(
+      summary = "Authenticate and issue tokens",
+      description = "Authenticates credentials and returns access/refresh tokens.",
+      security = {})
   @PostMapping("/login")
   public ResponseEntity<AuthTokensResponse> login(
       @Valid @RequestBody final AuthenticateAccountRequest request) {
@@ -96,6 +105,10 @@ public class AuthController {
         new AuthTokensResponse(tokens.accessToken(), tokens.refreshToken(), tokens.issuedAt()));
   }
 
+  @Operation(
+      summary = "Refresh tokens",
+      description = "Exchanges a refresh token for a new access/refresh token pair.",
+      security = {})
   @PostMapping("/refresh")
   public ResponseEntity<AuthTokensResponse> refresh(
       @Valid @RequestBody final RefreshTokenRequest request) {
@@ -125,6 +138,10 @@ public class AuthController {
         new AuthTokensResponse(tokens.accessToken(), tokens.refreshToken(), tokens.issuedAt()));
   }
 
+  @Operation(
+      summary = "Logout (revoke session)",
+      description =
+          "Revokes the current session / refresh token family for the authenticated account.")
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(@AuthenticationPrincipal final UUID accountId) {
 
