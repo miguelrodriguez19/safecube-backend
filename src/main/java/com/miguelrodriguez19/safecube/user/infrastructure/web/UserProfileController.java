@@ -10,6 +10,7 @@ import com.miguelrodriguez19.safecube.user.application.usecase.GetUserProfileUse
 import com.miguelrodriguez19.safecube.user.application.usecase.UpdateUserProfileUseCase;
 import com.miguelrodriguez19.safecube.user.infrastructure.web.dto.CreateUserProfileRequest;
 import com.miguelrodriguez19.safecube.user.infrastructure.web.dto.UpdateUserProfileRequest;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.Clock;
@@ -37,6 +38,9 @@ public class UserProfileController {
 
   private final Clock clock;
 
+  @Operation(
+      summary = "Create user profile",
+      description = "Creates a non-sensitive user profile for the authenticated account.")
   @PostMapping
   public ResponseEntity<UserProfileResponse> create(
       @Valid @NotNull @RequestBody final CreateUserProfileRequest request,
@@ -50,6 +54,9 @@ public class UserProfileController {
     return mapResult(result, HttpStatus.CREATED);
   }
 
+  @Operation(
+      summary = "Get user profile",
+      description = "Returns the user profile for the authenticated account.")
   @GetMapping
   public ResponseEntity<UserProfileResponse> get(@AuthenticationPrincipal final UUID accountId) {
 
@@ -58,6 +65,9 @@ public class UserProfileController {
     return mapResult(result, HttpStatus.OK);
   }
 
+  @Operation(
+      summary = "Update user profile",
+      description = "Updates editable profile fields for the authenticated account.")
   @PutMapping
   public ResponseEntity<UserProfileResponse> update(
       @Valid @NotNull @RequestBody final UpdateUserProfileRequest request,
