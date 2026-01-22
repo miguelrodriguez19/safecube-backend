@@ -38,6 +38,13 @@ security:
     secret: ${REFRESH_TOKEN_SECRET:change-me-refresh-secret}
 
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: ${ENABLE_SWAGGER:false}
+
+
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
