@@ -27,8 +27,8 @@ Feature: List secure items with filters
     And match response.items[0].itemType == 'PASSWORD'
 
 
-  Scenario: Filter items updated after a given instant
-    * def email = utilsJs.randomEmail('sec_items_filter_since')
+  Scenario: Filter items created after a given instant
+    * def email = utilsJs.randomEmail('sec_items_filter_created_after')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
 
@@ -43,7 +43,31 @@ Feature: List secure items with filters
 
     Given path '/vault/items'
     And headers utilsJs.bearer(accessToken)
-    And param since = first.createdAt
+    And param createdAfter = second.createdAt
+    When method get
+    Then status 200
+
+    And match response.items == '#[1]'
+    And match response.items[0].displayHint == 'New item'
+
+
+  Scenario: Filter items updated after a given instant
+    * def email = utilsJs.randomEmail('sec_items_filter_updated_after')
+    * def password = 'password123'
+    * def credentials = { email: '#(email)', password: '#(password)' }
+
+    * def auth = call read(createUserHelper) credentials
+    * def accessToken = auth.accessToken
+
+    * def first = call read(createSecureItemHelper) { accessToken: '#(accessToken)', displayHint: 'Old item' }
+
+    * eval karate.pause(1200)
+
+    * def second = call read(createSecureItemHelper) { accessToken: '#(accessToken)', displayHint: 'New item' }
+
+    Given path '/vault/items'
+    And headers utilsJs.bearer(accessToken)
+    And param updatedAfter = second.createdAt
     When method get
     Then status 200
 
@@ -103,7 +127,7 @@ Feature: List secure items with filters
     And match response.items[0].itemId == item.itemId
 
 
-  Scenario: Combine filters (type + since)
+  Scenario: Combine filters (type + createdAfter)
     * def email = utilsJs.randomEmail('sec_items_filter_combo')
     * def password = 'password123'
     * def credentials = { email: '#(email)', password: '#(password)' }
@@ -120,7 +144,7 @@ Feature: List secure items with filters
     Given path '/vault/items'
     And headers utilsJs.bearer(accessToken)
     And param type = 'PASSWORD'
-    And param since = oldNote.updatedAt
+    And param createdAfter = oldNote.createdAt
     When method get
     Then status 200
 

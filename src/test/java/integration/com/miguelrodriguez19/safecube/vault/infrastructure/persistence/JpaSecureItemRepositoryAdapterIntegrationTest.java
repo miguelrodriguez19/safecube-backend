@@ -60,7 +60,7 @@ class JpaSecureItemRepositoryAdapterIntegrationTest {
     final var now = Instant.now();
     final var accountId = insertAuthAccount();
     final var filters =
-        new ListSecureItemsFilter(null, null, Set.of(), false, 100, Order.DISPLAY_NAME_ASC);
+        new ListSecureItemsFilter(null, null, null, Set.of(), false, 100, Order.DISPLAY_NAME_ASC);
 
     final var first =
         SecureItem.of(
