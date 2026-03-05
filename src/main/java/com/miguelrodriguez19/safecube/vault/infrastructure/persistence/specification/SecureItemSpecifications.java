@@ -20,8 +20,12 @@ public final class SecureItemSpecifications {
     return (root, query, cb) -> cb.equal(root.get("accountId"), accountId);
   }
 
-  public static Specification<SecureItemJpaEntity> createdAt(final Instant since) {
-    return (root, query, cb) -> cb.greaterThan(root.get("createdAt"), since);
+  public static Specification<SecureItemJpaEntity> createdAfter(final Instant date) {
+    return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("createdAt"), date);
+  }
+
+  public static Specification<SecureItemJpaEntity> updatedAfter(final Instant since) {
+    return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("updatedAt"), since);
   }
 
   public static Specification<SecureItemJpaEntity> hasType(final String type) {

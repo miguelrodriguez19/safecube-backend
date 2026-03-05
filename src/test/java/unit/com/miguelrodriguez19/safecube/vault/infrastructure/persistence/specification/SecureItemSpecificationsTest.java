@@ -43,8 +43,8 @@ class SecureItemSpecificationsTest {
   }
 
   @Test
-  void createdAt_shouldBuildGreaterThanPredicate() {
-    final var since = Instant.now();
+  void createdAfter_shouldBuildGreaterThanOrEqualToPredicate() {
+    final var createdAt = Instant.now();
 
     final Root<SecureItemJpaEntity> root = mock(Root.class);
     final CriteriaQuery<?> query = mock(CriteriaQuery.class);
@@ -56,14 +56,40 @@ class SecureItemSpecificationsTest {
     final Predicate predicate = mock(Predicate.class);
 
     when(root.get("createdAt")).thenReturn((Path) path);
-    when(cb.greaterThan(path, since)).thenReturn(predicate);
+    when(cb.greaterThanOrEqualTo(path, createdAt)).thenReturn(predicate);
 
-    final Specification<SecureItemJpaEntity> spec = SecureItemSpecifications.createdAt(since);
+    final Specification<SecureItemJpaEntity> spec =
+        SecureItemSpecifications.createdAfter(createdAt);
 
     final var result = spec.toPredicate(root, query, cb);
 
     assertThat(result).isSameAs(predicate);
-    verify(cb).greaterThan(path, since);
+    verify(cb).greaterThanOrEqualTo(path, createdAt);
+  }
+
+  @Test
+  void updatedAfter_shouldBuildGreaterThanOrEqualToPredicate() {
+    final var updatedAt = Instant.now();
+
+    final Root<SecureItemJpaEntity> root = mock(Root.class);
+    final CriteriaQuery<?> query = mock(CriteriaQuery.class);
+    final CriteriaBuilder cb = mock(CriteriaBuilder.class);
+
+    @SuppressWarnings("unchecked")
+    final Path<Instant> path = mock(Path.class);
+
+    final Predicate predicate = mock(Predicate.class);
+
+    when(root.get("updatedAt")).thenReturn((Path) path);
+    when(cb.greaterThanOrEqualTo(path, updatedAt)).thenReturn(predicate);
+
+    final Specification<SecureItemJpaEntity> spec =
+        SecureItemSpecifications.updatedAfter(updatedAt);
+
+    final var result = spec.toPredicate(root, query, cb);
+
+    assertThat(result).isSameAs(predicate);
+    verify(cb).greaterThanOrEqualTo(path, updatedAt);
   }
 
   @Test

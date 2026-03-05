@@ -199,7 +199,7 @@ class JpaSecureItemRepositoryAdapterTest {
     final var accountId = UUID.randomUUID();
     final var filter =
         new ListSecureItemsFilter(
-            null, null, Set.of(), false, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+            null, null, null, Set.of(), false, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
 
     final var entity = getSecureItemJpaEntity(accountId);
     when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
@@ -213,13 +213,44 @@ class JpaSecureItemRepositoryAdapterTest {
   }
 
   @Test
-  void shouldFindItemsByAccount_withSinceFilter() {
+  void shouldFindItemsByAccount_withCreatedAfterFilter() {
     final var accountId = UUID.randomUUID();
-    final var since = Instant.now().minusSeconds(60);
+    final var createdAfter = Instant.now().minusSeconds(60);
 
     final var filter =
         new ListSecureItemsFilter(
-            since, null, Set.of(), false, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+            createdAfter,
+            null,
+            null,
+            Set.of(),
+            false,
+            50,
+            ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+
+    final var entity = getSecureItemJpaEntity(accountId);
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(getSecureItem(entity));
+
+    final var result = target.findFilteredByAccount(accountId, filter);
+
+    assertThat(result).hasSize(1);
+  }
+
+  @Test
+  void shouldFindItemsByAccount_withUpdatedAfterFilter() {
+    final var accountId = UUID.randomUUID();
+    final var updatedAfter = Instant.now().minusSeconds(60);
+
+    final var filter =
+        new ListSecureItemsFilter(
+            null,
+            updatedAfter,
+            null,
+            Set.of(),
+            false,
+            50,
+            ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
 
     final var entity = getSecureItemJpaEntity(accountId);
     when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
@@ -237,7 +268,7 @@ class JpaSecureItemRepositoryAdapterTest {
 
     final var filter =
         new ListSecureItemsFilter(
-            null, null, Set.of(), true, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+            null, null, null, Set.of(), true, 50, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
 
     final var entity = getSecureItemJpaEntity(accountId);
     when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
@@ -256,6 +287,7 @@ class JpaSecureItemRepositoryAdapterTest {
     final var filter =
         new ListSecureItemsFilter(
             Instant.now().minusSeconds(120),
+            Instant.now().minusSeconds(60),
             ItemTypeDto.PASSWORD,
             Set.of(),
             false,
@@ -274,7 +306,7 @@ class JpaSecureItemRepositoryAdapterTest {
 
   private ListSecureItemsFilter getFilter(final ItemTypeDto type) {
     return new ListSecureItemsFilter(
-        null, type, Set.of(), false, 100, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
+        null, null, type, Set.of(), false, 100, ListSecureItemsFilter.Order.DISPLAY_NAME_ASC);
   }
 
   private SecureItemJpaEntity getSecureItemJpaEntity(UUID accountId) {

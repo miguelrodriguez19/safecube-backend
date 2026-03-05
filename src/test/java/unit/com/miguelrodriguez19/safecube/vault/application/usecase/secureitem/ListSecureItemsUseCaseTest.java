@@ -98,14 +98,14 @@ class ListSecureItemsUseCaseTest {
   }
 
   private static @NonNull ListSecureItemsFilter getFilter() {
-    return new ListSecureItemsFilter(null, null, Set.of(), true, 100, Order.DISPLAY_NAME_ASC);
+    return new ListSecureItemsFilter(null, null, null, Set.of(), true, 100, Order.DISPLAY_NAME_ASC);
   }
 
   private ListSecureItemsQuery getListSecureItemsQuery(
       final UUID accountId, final Instant createdAt, boolean includeDeleted) {
     final var filters =
         new ListSecureItemsFilter(
-            createdAt, null, Set.of(), includeDeleted, 100, Order.DISPLAY_NAME_ASC);
+            createdAt, createdAt, null, Set.of(), includeDeleted, 100, Order.DISPLAY_NAME_ASC);
 
     return new ListSecureItemsQuery(accountId, filters);
   }

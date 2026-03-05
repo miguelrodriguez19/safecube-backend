@@ -34,8 +34,12 @@ public class JpaSecureItemRepositoryAdapter implements SecureItemRepository {
 
     var spec = Specification.where(SecureItemSpecifications.accountIs(accountId));
 
-    if (filter.since() != null) {
-      spec = spec.and(SecureItemSpecifications.createdAt(filter.since()));
+    if (filter.createdAfter() != null) {
+      spec = spec.and(SecureItemSpecifications.createdAfter(filter.createdAfter()));
+    }
+
+    if (filter.updatedAfter() != null) {
+      spec = spec.and(SecureItemSpecifications.updatedAfter(filter.updatedAfter()));
     }
 
     if (filter.type() != null) {
