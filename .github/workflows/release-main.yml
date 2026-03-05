@@ -5,10 +5,6 @@ on:
   push:
     branches: [ main ]
 
-concurrency:
-  group: main-release
-  cancel-in-progress: false
-
 jobs:
 
   ############### 1. CI Lite (build + tests + version guard) ###############
@@ -120,5 +116,5 @@ jobs:
 
         koyeb service update selective-charil/safecube-backend \
           --token "${{ secrets.KOYEB_API_TOKEN }}" \
-          --docker ghcr.io/${{ github.repository }}:latest \
+          --docker ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }} \
           --deployment-strategy immediate
