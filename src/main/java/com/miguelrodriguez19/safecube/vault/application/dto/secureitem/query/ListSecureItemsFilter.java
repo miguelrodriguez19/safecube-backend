@@ -10,7 +10,8 @@ import java.util.Set;
  * <p>Explicit filter object for listing SecureItems.
  */
 public record ListSecureItemsFilter(
-    Instant since,
+    Instant createdAfter,
+    Instant updatedAfter,
     ItemTypeDto type,
     // TODO: currently unimplemented. Out of MVP scope
     Set<String> labels,

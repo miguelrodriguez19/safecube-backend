@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
 public class ListSecureItemsFilterMapper {
 
   public ListSecureItemsFilter from(
-      final Instant since,
+      final Instant createdAfter,
+      final Instant updatedAfter,
       final String type,
       final Set<String> labels,
       final boolean includeDeleted,
@@ -24,7 +25,8 @@ public class ListSecureItemsFilterMapper {
       final String order) {
 
     return new ListSecureItemsFilter(
-        since,
+        createdAfter,
+        updatedAfter,
         type != null ? ItemTypeDto.valueOf(type) : null,
         labels,
         includeDeleted,

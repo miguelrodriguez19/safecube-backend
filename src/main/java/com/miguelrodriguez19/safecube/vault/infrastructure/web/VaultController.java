@@ -129,7 +129,9 @@ public class VaultController {
   public ResponseEntity<ListSecureItemsResponse> list(
       @AuthenticationPrincipal final UUID accountId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          final Instant since,
+          final Instant createdAfter,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          final Instant updatedAfter,
       @RequestParam(required = false) @ValidItemType final String type,
       @RequestParam(required = false) final Set<String> labels,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDeleted,
@@ -137,7 +139,8 @@ public class VaultController {
       @RequestParam(required = false, defaultValue = "DISPLAY_NAME_ASC") @ValidOrder
           final String order) {
 
-    final var filters = filterMapper.from(since, type, labels, includeDeleted, limit, order);
+    final var filters =
+        filterMapper.from(createdAfter, updatedAfter, type, labels, includeDeleted, limit, order);
 
     final var result = listUseCase.execute(new ListSecureItemsQuery(accountId, filters));
 
