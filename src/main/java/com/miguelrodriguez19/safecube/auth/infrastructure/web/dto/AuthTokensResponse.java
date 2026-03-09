@@ -12,14 +12,17 @@ import java.time.Instant;
 public record AuthTokensResponse(
     @Schema(
             description = "Access token for authenticated requests (JWT).",
-            accessMode = Schema.AccessMode.READ_ONLY)
+            accessMode = Schema.AccessMode.READ_ONLY,
+            requiredMode = Schema.RequiredMode.REQUIRED)
         String accessToken,
     @Schema(
             description = "Refresh token used to obtain new token pairs.",
-            accessMode = Schema.AccessMode.READ_ONLY)
+            accessMode = Schema.AccessMode.READ_ONLY,
+            requiredMode = Schema.RequiredMode.REQUIRED)
         String refreshToken,
     @Schema(
             description = "Instant when the token pair was issued.",
             accessMode = Schema.AccessMode.READ_ONLY,
+            requiredMode = Schema.RequiredMode.REQUIRED,
             format = "date-time")
         Instant issuedAt) {}

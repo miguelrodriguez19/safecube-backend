@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.secureitem.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
@@ -7,4 +8,5 @@ import java.util.List;
  *
  * <p>HTTP response wrapper for listing SecureItems without payload.
  */
-public record ListSecureItemsResponse(List<SecureItemSummaryResponse> items) {}
+public record ListSecureItemsResponse(
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<SecureItemSummaryResponse> items) {}

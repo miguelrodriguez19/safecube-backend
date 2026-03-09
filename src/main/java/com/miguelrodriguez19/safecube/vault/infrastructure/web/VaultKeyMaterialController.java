@@ -46,11 +46,12 @@ public class VaultKeyMaterialController {
   private final Clock clock;
 
   @Operation(
+      operationId = "initVaultKeyMaterial",
       summary = "Initialize vault key material",
       description =
           "Stores wrapped key material and KDF parameters. All fields are opaque; the backend never derives or decrypts keys.")
   @PostMapping
-  public ResponseEntity<Void> init(
+  public ResponseEntity<java.lang.Void> init(
       @AuthenticationPrincipal final UUID accountId,
       @Valid @RequestBody final InitVaultKeyMaterialRequest request) {
 
@@ -81,6 +82,7 @@ public class VaultKeyMaterialController {
   }
 
   @Operation(
+      operationId = "getVaultKeyMaterial",
       summary = "Get vault key material",
       description =
           "Returns the stored wrapped key material and crypto/KDF parameters for the authenticated account.")
@@ -115,11 +117,12 @@ public class VaultKeyMaterialController {
   }
 
   @Operation(
+      operationId = "updateMasterWrappedKek",
       summary = "Update master-wrapped KEK",
       description =
           "Updates the master-wrapped key material after passphrase change. Does not modify existing vault items.")
   @PutMapping("/master")
-  public ResponseEntity<Void> updateMaster(
+  public ResponseEntity<java.lang.Void> updateMaster(
       @AuthenticationPrincipal final UUID accountId,
       @Valid @RequestBody final UpdateMasterWrappedKekRequest request) {
 

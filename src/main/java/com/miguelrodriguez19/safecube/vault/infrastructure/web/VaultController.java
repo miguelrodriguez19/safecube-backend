@@ -61,6 +61,7 @@ public class VaultController {
   private final Clock clock;
 
   @Operation(
+      operationId = "createVaultItem",
       summary = "Create vault item",
       description =
           "Creates a new vault item for the authenticated account. The payload is opaque encrypted data.")
@@ -92,6 +93,7 @@ public class VaultController {
   }
 
   @Operation(
+      operationId = "getVaultItem",
       summary = "Get vault item",
       description = "Returns a vault item by id. The payload is opaque encrypted data.")
   @GetMapping("/{itemId}")
@@ -122,6 +124,7 @@ public class VaultController {
   }
 
   @Operation(
+      operationId = "listVaultItems",
       summary = "List vault items",
       description =
           "Lists vault items for sync/listing. Supports filters and optional inclusion of deleted items.")
@@ -169,6 +172,7 @@ public class VaultController {
   }
 
   @Operation(
+      operationId = "updateVaultItem",
       summary = "Update vault item",
       description =
           "Updates an existing vault item. The payload is opaque encrypted data. Conflicts may occur on stale updates.")
@@ -200,6 +204,7 @@ public class VaultController {
   }
 
   @Operation(
+      operationId = "deleteVaultItem",
       summary = "Delete vault item (soft delete)",
       description = "Soft-deletes a vault item for the authenticated account.")
   @DeleteMapping("/{itemId}")

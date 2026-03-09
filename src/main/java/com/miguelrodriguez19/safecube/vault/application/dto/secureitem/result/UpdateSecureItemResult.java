@@ -1,7 +1,11 @@
 package com.miguelrodriguez19.safecube.vault.application.dto.secureitem.result;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.UUID;
 
 /** Result of a successful SecureItem update. */
-public record UpdateSecureItemResult(UUID itemId, long payloadVersion, Instant updatedAt) {}
+public record UpdateSecureItemResult(
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) UUID itemId,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long payloadVersion,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant updatedAt) {}

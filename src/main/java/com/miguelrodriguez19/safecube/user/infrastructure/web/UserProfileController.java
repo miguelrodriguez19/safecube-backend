@@ -39,6 +39,7 @@ public class UserProfileController {
   private final Clock clock;
 
   @Operation(
+      operationId = "createUserProfile",
       summary = "Create user profile",
       description = "Creates a non-sensitive user profile for the authenticated account.")
   @PostMapping
@@ -55,6 +56,7 @@ public class UserProfileController {
   }
 
   @Operation(
+      operationId = "getUserProfile",
       summary = "Get user profile",
       description = "Returns the user profile for the authenticated account.")
   @GetMapping
@@ -66,6 +68,7 @@ public class UserProfileController {
   }
 
   @Operation(
+      operationId = "updateUserProfile",
       summary = "Update user profile",
       description = "Updates editable profile fields for the authenticated account.")
   @PutMapping

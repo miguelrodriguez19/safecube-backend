@@ -1,5 +1,6 @@
 package com.miguelrodriguez19.safecube.vault.infrastructure.web.dto.secureitem.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,11 +10,11 @@ import java.util.UUID;
  * <p>HTTP response representation of a SecureItem.
  */
 public record SecureItemResponse(
-    UUID itemId,
-    String itemType,
-    Integer schemaVersion,
-    String displayHint,
-    byte[] payload,
-    long payloadVersion,
-    Instant updatedAt,
-    Instant deletedAt) {}
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) UUID itemId,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String itemType,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Integer schemaVersion,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String displayHint,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "byte") byte[] payload,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long payloadVersion,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant updatedAt,
+    @Schema(type = "string", format = "date-time", nullable = true) Instant deletedAt) {}

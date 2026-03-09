@@ -3,6 +3,9 @@ package com.miguelrodriguez19.safecube.shared.config.openapi;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.MapSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +25,13 @@ public class OpenApiConfig {
                     "Zero-knowledge backend API. The server never inspects or interprets encrypted payloads."))
         .components(
             new Components()
+                .addSchemas(
+                    "ErrorResponse",
+                    new ObjectSchema()
+                        .addRequiredItem("error")
+                        .addProperty("error", new StringSchema())
+                        .addProperty(
+                            "fields", new MapSchema().additionalProperties(new StringSchema())))
                 .addSecuritySchemes(
                     "bearerAuth",
                     new SecurityScheme()
