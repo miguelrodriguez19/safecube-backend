@@ -11,10 +11,10 @@ import jakarta.validation.constraints.Positive;
             + "All byte arrays are opaque encrypted/wrapped values produced by the client. "
             + "The backend never derives or decrypts keys (zero-knowledge).")
 public record InitVaultKeyMaterialRequest(
-    @Schema(description = "Master-wrapped KEK (opaque bytes).", format = "binary") @NotNull byte[] kekEncMaster,
-    @Schema(description = "Recovery-wrapped KEK (opaque bytes).", format = "binary") @NotNull byte[] kekEncRecovery,
+    @Schema(description = "Master-wrapped KEK (base64 encoded bytes).", format = "byte") @NotNull byte[] kekEncMaster,
+    @Schema(description = "Recovery-wrapped KEK (opaque bytes).", format = "byte") @NotNull byte[] kekEncRecovery,
     @Schema(description = "KDF algorithm identifier used by the client (e.g., argon2id).") @NotBlank String kdfAlgorithm,
-    @Schema(description = "KDF salt (opaque bytes).", format = "binary") @NotNull byte[] kdfSalt,
+    @Schema(description = "KDF salt (opaque bytes).", format = "byte") @NotNull byte[] kdfSalt,
     @Schema(description = "KDF memory cost in KiB.") @Positive int kdfMemoryKib,
     @Schema(description = "KDF iterations / time cost.") @Positive int kdfIterations,
     @Schema(description = "KDF parallelism.") @Positive int kdfParallelism,

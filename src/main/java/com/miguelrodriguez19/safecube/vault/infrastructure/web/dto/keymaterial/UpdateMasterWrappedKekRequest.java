@@ -8,4 +8,4 @@ import jakarta.validation.constraints.NotNull;
         "Request to update the master-wrapped KEK after a passphrase change. "
             + "Opaque client-produced bytes; the backend does not decrypt or derive keys.")
 public record UpdateMasterWrappedKekRequest(
-    @Schema(description = "New master-wrapped KEK (opaque bytes).", format = "binary") @NotNull byte[] newKekEncMaster) {}
+    @Schema(description = "New master-wrapped KEK (opaque bytes).", format = "byte") @NotNull byte[] newKekEncMaster) {}
