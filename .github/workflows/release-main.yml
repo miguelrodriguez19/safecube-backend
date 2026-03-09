@@ -104,7 +104,9 @@ jobs:
   ############### 4. Deploy to Production (manual approval) ###############
   deploy-production:
     name: 'Deploy Production (Koyeb)'
-    needs: build-container-image
+    needs:
+      - build-container-image
+      - create-release-tag
     runs-on: ubuntu-latest
     environment: production
 
@@ -114,7 +116,28 @@ jobs:
         curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
         export PATH="$HOME/.koyeb/bin:$PATH"
 
+        echo "Deploying... version ${{ needs.create-release-tag.outputs.version }}"
+
         koyeb service update selective-charil/safecube-backend \
           --token "${{ secrets.KOYEB_API_TOKEN }}" \
           --docker ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }} \
           --deployment-strategy immediate
+
+
+  ############### 5. Create GitHub Release (after successful deploy) ###############
+  create-github-release:
+    name: 'Release - Create GitHub Release'
+    needs:
+      - deploy-production
+      - create-release-tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release-tag.outputs.version }}
+          name: v${{ needs.create-release-tag.outputs.version }}
+          generate_release_notes: true
