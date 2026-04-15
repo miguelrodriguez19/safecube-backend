@@ -31,11 +31,19 @@ function fn() {
     };
 
     /**
-     *
+     * Add the amountDays to the date passed
      */
     utils.datePlusDays = function(date, amountDays){
         return java.time.Instant.parse(date.toString())
                     .plus(amountDays, java.time.temporal.ChronoUnit.DAYS).toString()
+    }
+
+    /**
+     * CompareTo between params dates: date1 and date2
+     */
+    utils.compareDates = function(date1, date2){
+        return java.time.Instant.parse(date1.toString())
+                    .compareTo(java.time.Instant.parse(date2.toString()))
     }
 
     return utils;

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.time.Instant;
 
 /**
  * UpdateSecureItemRequest
@@ -29,10 +28,4 @@ public record UpdateSecureItemRequest(
             description = "Non-sensitive display hint (e.g., title) used for listing.",
             maxLength = 255)
         @NotBlank @Size(max = 255) String displayHint,
-    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload,
-    @Schema(
-            description =
-                "Client update timestamp used for sync/conflict handling. "
-                    + "Must represent the timestamp of the payload being stored.",
-            format = "date-time")
-        @NotNull Instant updatedAt) {}
+    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload) {}

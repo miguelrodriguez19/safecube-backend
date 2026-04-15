@@ -16,16 +16,15 @@ Feature: Update secure item
 
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)' }
 
+    * def instantNow = utilsJs.instantNow()
     * def newPayload = utilsJs.base64('{"secret":"updated"}')
-    * def updatedAt = utilsJs.datePlusDays(item.createdAt, 2)
     * def requestBody =
       """
       {
         itemType: 'PASSWORD',
         schemaVersion: 2,
         displayHint: 'Updated secure item',
-        payload: '#(newPayload)',
-        updatedAt: '#(updatedAt)'
+        payload: '#(newPayload)'
       }
       """
 
@@ -39,6 +38,7 @@ Feature: Update secure item
     And match response.itemId == item.itemId
     And match response.payloadVersion == '#number'
     And match response.updatedAt == '#present'
+    And assert utilsJs.compareDates(response.updatedAt, instantNow) >= 1
 
 
   Scenario: Fail to update item from another account
@@ -59,7 +59,6 @@ Feature: Update secure item
     * def authB = call read(createUserHelper) credentialsB
     * def tokenB = authB.accessToken
 
-    * def updatedAt = utilsJs.instantNow()
     * def chipherPayload = utilsJs.base64("my updated secret")
 
     Given path '/vault/items', itemA.itemId
@@ -70,8 +69,7 @@ Feature: Update secure item
         itemType: 'PASSWORD',
         schemaVersion: 1,
         displayHint: 'Hacked',
-        payload: '#(chipherPayload)',
-        updatedAt: '#(updatedAt)'
+        payload: '#(chipherPayload)'
       }
       """
     When method put
@@ -112,8 +110,7 @@ Feature: Update secure item
         itemType: 'PASSWORD',
         schemaVersion: 1,
         displayHint: 'X',
-        payload: '#(utilsJs.base64("x"))',
-        updatedAt: '#(utilsJs.instantNow())'
+        payload: '#(utilsJs.base64("x"))'
       }
       """
     When method put
