@@ -70,7 +70,7 @@ public class VaultController {
       @AuthenticationPrincipal final UUID accountId,
       @Valid @RequestBody final CreateSecureItemRequest request) {
 
-    final var now = Instant.now(clock);
+    final var now = clock.instant();
     final var itemType = ItemTypeDto.valueOf(request.itemType());
 
     final var result =
@@ -183,6 +183,8 @@ public class VaultController {
       @Valid @RequestBody final UpdateSecureItemRequest request) {
 
     final var itemType = ItemTypeDto.valueOf(request.itemType());
+    final var now = clock.instant();
+
     final var result =
         updateUseCase.execute(
             new UpdateSecureItemCommand(
@@ -192,7 +194,7 @@ public class VaultController {
                 request.schemaVersion(),
                 request.displayHint(),
                 request.payload(),
-                request.updatedAt()));
+                now));
 
     return switch (result) {
       case Result.Success<UpdateSecureItemResult, VaultError> s ->
@@ -211,7 +213,7 @@ public class VaultController {
   public ResponseEntity<DeleteSecureItemResult> delete(
       @AuthenticationPrincipal final UUID accountId, @PathVariable("itemId") final UUID itemId) {
 
-    final var deletedAt = Instant.now(clock);
+    final var deletedAt = clock.instant();
     final var result =
         deleteUseCase.execute(new DeleteSecureItemCommand(accountId, itemId, deletedAt));
 
