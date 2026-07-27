@@ -12,5 +12,7 @@ public record GetSecureItemResult(
     String displayHint,
     byte[] payload,
     long payloadVersion,
+    long itemRevision,
+    long changeSequence,
     Instant updatedAt,
     Instant deletedAt) {}

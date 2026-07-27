@@ -5,14 +5,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-/** Result of listing SecureItems (without payload) for an account. */
-public record ListSecureItemsResult(List<Item> items) {
+/** Ordered page of complete item snapshots for synchronization. */
+public record ListSecureItemChangesResult(List<Item> items, long nextCursor, boolean hasMore) {
 
   public record Item(
       UUID itemId,
       ItemTypeDto itemType,
       int schemaVersion,
       String displayHint,
+      byte[] payload,
       long payloadVersion,
       long itemRevision,
       long changeSequence,

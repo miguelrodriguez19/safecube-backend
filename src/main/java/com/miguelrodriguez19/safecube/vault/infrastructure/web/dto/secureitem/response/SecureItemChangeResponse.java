@@ -4,15 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * SecureItemResponse
- *
- * <p>HTTP response representation of a SecureItem.
- */
-public record SecureItemResponse(
+public record SecureItemChangeResponse(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) UUID itemId,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String itemType,
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Integer schemaVersion,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int schemaVersion,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String displayHint,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "byte") byte[] payload,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long payloadVersion,

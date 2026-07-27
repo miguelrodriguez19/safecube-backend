@@ -11,9 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * WebExceptionHandler
@@ -74,6 +76,26 @@ public class WebExceptionHandler {
             });
 
     return ResponseEntity.badRequest().body(ErrorResponse.withFields(VALIDATION_FAILED, fields));
+  }
+
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingRequestHeader(
+      final MissingRequestHeaderException ex) {
+    log.error("Required request header is missing", ex);
+    return ResponseEntity.badRequest()
+        .body(
+            ErrorResponse.withFields(
+                VALIDATION_FAILED, java.util.Map.of(ex.getHeaderName(), "Header is required")));
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+      final MethodArgumentTypeMismatchException ex) {
+    log.error("Request argument type mismatch", ex);
+    return ResponseEntity.badRequest()
+        .body(
+            ErrorResponse.withFields(
+                VALIDATION_FAILED, java.util.Map.of(ex.getName(), "Malformed value")));
   }
 
   // Domain & infrastructure errors

@@ -12,4 +12,7 @@ public record UpdateSecureItemCommand(
     int schemaVersion,
     String displayHint,
     byte[] payload,
+    long payloadVersion,
+    long expectedItemRevision,
+    UUID mutationId,
     Instant updatedAt) {}

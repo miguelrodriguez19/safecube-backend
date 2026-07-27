@@ -19,6 +19,8 @@ public class SecureItem {
   private final String displayHint;
   private final byte[] payload;
   private final long payloadVersion;
+  private final long itemRevision;
+  private final long changeSequence;
   private final Instant createdAt;
   private final Instant updatedAt;
   private final Instant deletedAt;
@@ -31,10 +33,15 @@ public class SecureItem {
       final String displayHint,
       final byte[] payload,
       final long payloadVersion,
+      final long itemRevision,
+      final long changeSequence,
       final Instant createdAt,
       final Instant updatedAt,
       final Instant deletedAt) {
     validatePayload(payload);
+    if (payloadVersion <= 0 || itemRevision <= 0 || changeSequence <= 0) {
+      throw new InvalidPayloadException("Secure item versions must be positive");
+    }
 
     this.itemId = itemId;
     this.accountId = accountId;
@@ -43,6 +50,8 @@ public class SecureItem {
     this.displayHint = displayHint;
     this.payload = payload;
     this.payloadVersion = payloadVersion;
+    this.itemRevision = itemRevision;
+    this.changeSequence = changeSequence;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.deletedAt = deletedAt;
@@ -55,6 +64,8 @@ public class SecureItem {
       final int schemaVersion,
       final String displayHint,
       final byte[] payload,
+      final long payloadVersion,
+      final long changeSequence,
       final Instant createdAt) {
     return new SecureItem(
         itemId,
@@ -63,10 +74,51 @@ public class SecureItem {
         schemaVersion,
         displayHint,
         payload,
+        payloadVersion,
         1L,
+        changeSequence,
         createdAt,
         createdAt,
         null);
+  }
+
+  public static SecureItem of(
+      final UUID itemId,
+      final UUID accountId,
+      final ItemType itemType,
+      final int schemaVersion,
+      final String displayHint,
+      final byte[] payload,
+      final Instant createdAt) {
+    return of(itemId, accountId, itemType, schemaVersion, displayHint, payload, 1L, 1L, createdAt);
+  }
+
+  public static SecureItem restore(
+      final UUID itemId,
+      final UUID accountId,
+      final ItemType itemType,
+      final int schemaVersion,
+      final String displayHint,
+      final byte[] payload,
+      final long payloadVersion,
+      final long itemRevision,
+      final long changeSequence,
+      final Instant createdAt,
+      final Instant updatedAt,
+      final Instant deletedAt) {
+    return new SecureItem(
+        itemId,
+        accountId,
+        itemType,
+        schemaVersion,
+        displayHint,
+        payload,
+        payloadVersion,
+        itemRevision,
+        changeSequence,
+        createdAt,
+        updatedAt,
+        deletedAt);
   }
 
   public static SecureItem restore(
@@ -80,13 +132,15 @@ public class SecureItem {
       final Instant createdAt,
       final Instant updatedAt,
       final Instant deletedAt) {
-    return new SecureItem(
+    return restore(
         itemId,
         accountId,
         itemType,
         schemaVersion,
         displayHint,
         payload,
+        payloadVersion,
+        payloadVersion,
         payloadVersion,
         createdAt,
         updatedAt,

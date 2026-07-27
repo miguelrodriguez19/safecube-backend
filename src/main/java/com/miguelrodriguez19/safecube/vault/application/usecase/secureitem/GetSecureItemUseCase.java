@@ -38,6 +38,8 @@ public class GetSecureItemUseCase {
             secureItem.getDisplayHint(),
             secureItem.getPayload(),
             secureItem.getPayloadVersion(),
+            secureItem.getItemRevision(),
+            secureItem.getChangeSequence(),
             secureItem.getUpdatedAt(),
             secureItem.getDeletedAt()));
   }

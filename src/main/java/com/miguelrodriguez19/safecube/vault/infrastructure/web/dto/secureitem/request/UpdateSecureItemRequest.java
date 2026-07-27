@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Size;
     description =
         "Request to update a vault item. "
             + "The payload is opaque encrypted data produced by the client; the backend does not inspect it. "
-            + "The updatedAt field is used for optimistic concurrency.")
+            + "Concurrency is enforced through the If-Match item revision.")
 public record UpdateSecureItemRequest(
     @Schema(description = "Item type identifier.", example = "NOTE") @NotNull @ValidItemType
         String itemType,
@@ -28,4 +28,5 @@ public record UpdateSecureItemRequest(
             description = "Non-sensitive display hint (e.g., title) used for listing.",
             maxLength = 255)
         @NotBlank @Size(max = 255) String displayHint,
-    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload) {}
+    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload,
+    @Schema(description = "Client-owned cryptographic payload generation.") @NotNull Long payloadVersion) {}

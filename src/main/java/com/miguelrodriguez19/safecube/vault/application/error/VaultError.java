@@ -5,7 +5,8 @@ public sealed interface VaultError
     permits VaultError.InvalidPayload,
         VaultError.SecureItemNotFound,
         VaultError.StaleUpdateRejected,
-        VaultError.StaleDeleteRejected {
+        VaultError.StaleDeleteRejected,
+        VaultError.IdempotencyConflict {
 
   /** Indicates that the provided payload is invalid. */
   record InvalidPayload() implements VaultError {}
@@ -18,4 +19,7 @@ public sealed interface VaultError
 
   /** Indicates that a delete operation was rejected due to stale data. */
   record StaleDeleteRejected() implements VaultError {}
+
+  /** Indicates that an idempotency key was reused for a different request. */
+  record IdempotencyConflict() implements VaultError {}
 }

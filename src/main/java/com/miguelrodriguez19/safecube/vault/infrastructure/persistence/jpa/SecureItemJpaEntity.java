@@ -44,10 +44,42 @@ public class SecureItemJpaEntity {
   private long payloadVersion;
 
   @Column(nullable = false)
+  private long itemRevision;
+
+  @Column(nullable = false)
+  private long changeSequence;
+
+  @Column(nullable = false)
   private Instant createdAt;
 
   @Column(nullable = false)
   private Instant updatedAt;
 
   @Column private Instant deletedAt;
+
+  public SecureItemJpaEntity(
+      final UUID itemId,
+      final UUID accountId,
+      final String itemType,
+      final int schemaVersion,
+      final String displayHint,
+      final byte[] payload,
+      final long payloadVersion,
+      final Instant createdAt,
+      final Instant updatedAt,
+      final Instant deletedAt) {
+    this(
+        itemId,
+        accountId,
+        itemType,
+        schemaVersion,
+        displayHint,
+        payload,
+        payloadVersion,
+        payloadVersion,
+        payloadVersion,
+        createdAt,
+        updatedAt,
+        deletedAt);
+  }
 }

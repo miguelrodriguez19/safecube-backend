@@ -68,13 +68,49 @@ public class JpaSecureItemRepositoryAdapter implements SecureItemRepository {
   }
 
   @Override
-  public void update(final SecureItem secureItem) {
-    jpaRepository.save(mapper.toEntity(secureItem));
+  public List<SecureItem> findChanges(final UUID accountId, final long after, final int limit) {
+    return jpaRepository
+        .findByAccountIdAndChangeSequenceGreaterThanOrderByChangeSequenceAsc(
+            accountId, after, PageRequest.of(0, limit))
+        .stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 
   @Override
-  public void softDelete(final UUID itemId, final UUID accountId, final Instant deletedAt) {
-    jpaRepository.softDelete(itemId, accountId, deletedAt);
+  public long nextChangeSequence(final UUID accountId) {
+    return jpaRepository.nextChangeSequence(accountId);
+  }
+
+  @Override
+  public boolean updateIfRevisionMatches(
+      final SecureItem secureItem, final long expectedItemRevision) {
+    return jpaRepository.updateIfRevisionMatches(
+            secureItem.getItemId(),
+            secureItem.getAccountId(),
+            expectedItemRevision,
+            secureItem.getItemRevision(),
+            secureItem.getChangeSequence(),
+            secureItem.getItemType().name(),
+            secureItem.getSchemaVersion(),
+            secureItem.getDisplayHint(),
+            secureItem.getPayload(),
+            secureItem.getPayloadVersion(),
+            secureItem.getUpdatedAt())
+        == 1;
+  }
+
+  @Override
+  public boolean softDeleteIfRevisionMatches(
+      final UUID itemId,
+      final UUID accountId,
+      final long expectedItemRevision,
+      final long nextItemRevision,
+      final long changeSequence,
+      final Instant deletedAt) {
+    return jpaRepository.softDeleteIfRevisionMatches(
+            itemId, accountId, expectedItemRevision, nextItemRevision, changeSequence, deletedAt)
+        == 1;
   }
 
   private int resolveLimit(final ListSecureItemsFilter filter) {

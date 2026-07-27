@@ -25,7 +25,7 @@ public final class SecureItemSpecifications {
   }
 
   public static Specification<SecureItemJpaEntity> updatedAfter(final Instant since) {
-    return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("updatedAt"), since);
+    return (root, query, cb) -> cb.greaterThan(root.get("updatedAt"), since);
   }
 
   public static Specification<SecureItemJpaEntity> hasType(final String type) {

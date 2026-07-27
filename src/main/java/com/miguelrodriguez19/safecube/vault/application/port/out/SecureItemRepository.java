@@ -19,7 +19,17 @@ public interface SecureItemRepository {
 
   List<SecureItem> findFilteredByAccount(final UUID accountId, final ListSecureItemsFilter filter);
 
-  void update(final SecureItem secureItem);
+  List<SecureItem> findChanges(final UUID accountId, final long after, final int limit);
 
-  void softDelete(final UUID itemId, final UUID accountId, final java.time.Instant deletedAt);
+  long nextChangeSequence(final UUID accountId);
+
+  boolean updateIfRevisionMatches(final SecureItem secureItem, final long expectedItemRevision);
+
+  boolean softDeleteIfRevisionMatches(
+      final UUID itemId,
+      final UUID accountId,
+      final long expectedItemRevision,
+      final long nextItemRevision,
+      final long changeSequence,
+      final java.time.Instant deletedAt);
 }
