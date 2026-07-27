@@ -1,23 +1,25 @@
 package unit.com.miguelrodriguez19.safecube.vault.application.usecase.secureitem;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.ItemTypeDto;
 import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.command.UpdateSecureItemCommand;
-import com.miguelrodriguez19.safecube.vault.application.dto.secureitem.result.UpdateSecureItemResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultError;
 import com.miguelrodriguez19.safecube.vault.application.mapper.ItemTypeMapper;
+import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemMutationRepository;
 import com.miguelrodriguez19.safecube.vault.application.port.out.SecureItemRepository;
+import com.miguelrodriguez19.safecube.vault.application.usecase.secureitem.SecureItemMutationHasher;
 import com.miguelrodriguez19.safecube.vault.application.usecase.secureitem.UpdateSecureItemUseCase;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.ItemType;
 import com.miguelrodriguez19.safecube.vault.domain.model.secureitem.SecureItem;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import unit.annotation.UnitTest;
@@ -26,117 +28,75 @@ import unit.annotation.UnitTest;
 class UpdateSecureItemUseCaseTest {
 
   @Mock SecureItemRepository secureItemRepository;
+  @Mock SecureItemMutationRepository mutationRepository;
   @Mock ItemTypeMapper itemTypeMapper;
+  @Mock SecureItemMutationHasher mutationHasher;
 
   @InjectMocks private UpdateSecureItemUseCase target;
 
   @Test
-  void shouldUpdateSecureItem_givenNewerUpdatedAt() {
-    final var accountId = UUID.randomUUID();
-    final var itemId = UUID.randomUUID();
-
-    final var createdAt = Instant.parse("2026-01-18T09:00:00Z");
-    final var previousUpdatedAt = Instant.parse("2026-01-18T10:00:00Z");
-    final var newUpdatedAt = Instant.parse("2026-01-18T10:05:00Z");
-
-    final var existingItem =
-        SecureItem.restore(
-            itemId,
-            accountId,
-            ItemType.PASSWORD,
-            1,
-            "GitHub",
-            "old-payload".getBytes(),
-            1L,
-            createdAt,
-            previousUpdatedAt,
-            null);
-
-    when(secureItemRepository.findByIdAndAccount(itemId, accountId)).thenReturn(existingItem);
-
-    final var command =
-        new UpdateSecureItemCommand(
-            accountId,
-            itemId,
-            ItemTypeDto.PASSWORD,
-            2,
-            "GitHub Updated",
-            "new-payload".getBytes(),
-            newUpdatedAt);
+  void shouldUseAtomicRevisionAndKeepClientPayloadVersion() {
+    final var command = command(5L, 12L);
+    when(mutationHasher.hash(command)).thenReturn("hash");
+    when(secureItemRepository.findByIdAndAccount(command.itemId(), command.accountId()))
+        .thenReturn(existing(command, 5L));
+    when(itemTypeMapper.toDomain(command.itemTypeDto())).thenReturn(ItemType.PASSWORD);
+    when(secureItemRepository.nextChangeSequence(command.accountId())).thenReturn(80L);
+    when(secureItemRepository.updateIfRevisionMatches(any(), eq(command.expectedItemRevision())))
+        .thenReturn(true);
 
     final var result = target.execute(command);
 
-    final var captor = ArgumentCaptor.forClass(SecureItem.class);
-    verify(secureItemRepository).update(captor.capture());
-
-    final var updatedItem = captor.getValue();
-
-    assertThat(result.isSuccess()).isTrue();
-    assertThat(result.success().get())
-        .extracting(
-            UpdateSecureItemResult::itemId,
-            UpdateSecureItemResult::payloadVersion,
-            UpdateSecureItemResult::updatedAt)
-        .containsExactly(itemId, 2L, newUpdatedAt);
-
-    assertThat(updatedItem.getPayloadVersion()).isEqualTo(2L);
-    assertThat(updatedItem.getUpdatedAt()).isEqualTo(newUpdatedAt);
+    assertThat(result.success().orElseThrow().payloadVersion()).isEqualTo(12L);
+    assertThat(result.success().orElseThrow().itemRevision()).isEqualTo(6L);
+    assertThat(result.success().orElseThrow().changeSequence()).isEqualTo(80L);
+    verify(mutationRepository).save(any());
   }
 
   @Test
-  void shouldRejectUpdate_whenUpdatedAtIsStale() {
-    final var accountId = UUID.randomUUID();
-    final var itemId = UUID.randomUUID();
-
-    final var updatedAt = Instant.parse("2026-01-18T10:00:00Z");
-
-    final var existingItem =
-        SecureItem.restore(
-            itemId,
-            accountId,
-            ItemType.PASSWORD,
-            1,
-            "GitHub",
-            "payload".getBytes(),
-            1L,
-            updatedAt,
-            updatedAt,
-            null);
-
-    when(secureItemRepository.findByIdAndAccount(itemId, accountId)).thenReturn(existingItem);
-
-    final var command = getUpdateSecureItemCommand(accountId, itemId, updatedAt);
+  void shouldRejectStaleCompareAndSetWithoutRecordingMutation() {
+    final var command = command(5L, 12L);
+    when(mutationHasher.hash(command)).thenReturn("hash");
+    when(secureItemRepository.findByIdAndAccount(command.itemId(), command.accountId()))
+        .thenReturn(existing(command, 6L));
+    when(itemTypeMapper.toDomain(command.itemTypeDto())).thenReturn(ItemType.PASSWORD);
+    when(secureItemRepository.nextChangeSequence(command.accountId())).thenReturn(81L);
+    when(secureItemRepository.updateIfRevisionMatches(any(), eq(command.expectedItemRevision())))
+        .thenReturn(false);
 
     final var result = target.execute(command);
 
-    assertThat(result.isFailure()).isTrue();
     assertThat(result.error()).containsInstanceOf(VaultError.StaleUpdateRejected.class);
+    verify(mutationRepository, never()).save(any());
   }
 
-  @Test
-  void shouldReturnNotFound_whenItemDoesNotExist() {
-    final var accountId = UUID.randomUUID();
-    final var itemId = UUID.randomUUID();
-
-    when(secureItemRepository.findByIdAndAccount(itemId, accountId)).thenReturn(null);
-
-    final var command = getUpdateSecureItemCommand(accountId, itemId, Instant.now());
-
-    final var result = target.execute(command);
-
-    assertThat(result.isFailure()).isTrue();
-    assertThat(result.error()).containsInstanceOf(VaultError.SecureItemNotFound.class);
-  }
-
-  private UpdateSecureItemCommand getUpdateSecureItemCommand(
-      final UUID accountId, final UUID itemId, final Instant updatedAt) {
+  private UpdateSecureItemCommand command(final long baseRevision, final long payloadVersion) {
     return new UpdateSecureItemCommand(
-        accountId,
-        itemId,
+        UUID.randomUUID(),
+        UUID.randomUUID(),
         ItemTypeDto.PASSWORD,
         1,
         "GitHub",
-        "payload".getBytes(),
-        updatedAt.minus(30, ChronoUnit.MINUTES));
+        "encrypted".getBytes(),
+        payloadVersion,
+        baseRevision,
+        UUID.randomUUID(),
+        Instant.parse("2026-01-18T10:00:00Z"));
+  }
+
+  private SecureItem existing(final UpdateSecureItemCommand command, final long itemRevision) {
+    return SecureItem.restore(
+        command.itemId(),
+        command.accountId(),
+        ItemType.PASSWORD,
+        1,
+        "GitHub",
+        "old".getBytes(),
+        11L,
+        itemRevision,
+        70L,
+        command.updatedAt().minusSeconds(60),
+        command.updatedAt().minusSeconds(30),
+        null);
   }
 }

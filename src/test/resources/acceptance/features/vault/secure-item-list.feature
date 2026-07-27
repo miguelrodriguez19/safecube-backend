@@ -26,6 +26,9 @@ Feature: List secure items
     And match response.items == '#[2]'
     And match response.items[*].displayHint contains ['Item 1', 'Item 2']
     And match each response.items[*].itemId == '#uuid'
+    And match each response.items[*].payloadVersion == '#number'
+    And match each response.items[*].itemRevision == '#number'
+    And match each response.items[*].changeSequence == '#number'
 
 
   Scenario: List returns empty when user has no items

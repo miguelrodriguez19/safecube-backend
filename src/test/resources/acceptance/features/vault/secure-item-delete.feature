@@ -15,14 +15,22 @@ Feature: Delete secure item (soft delete)
     * def accessToken = auth.accessToken
 
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)' }
+    * def mutationId = utilsJs.uuid()
 
     Given path '/vault/items', item.itemId
     And headers utilsJs.bearer(accessToken)
+    And header Idempotency-Key = mutationId
+    And header If-Match = utilsJs.etag(item.itemRevision)
     When method delete
     Then status 200
 
     And match response.itemId == item.itemId
+    And match response.mutationId == mutationId
+    And match response.payloadVersion == item.responsePayloadVersion
+    And match response.itemRevision == item.itemRevision + 1
+    And match response.changeSequence == item.changeSequence + 1
     And match response.deletedAt == '#present'
+    And match responseHeaders['ETag'][0] == utilsJs.etag(response.itemRevision)
 
 
   Scenario: Deleted item is not returned in list by default
@@ -34,9 +42,12 @@ Feature: Delete secure item (soft delete)
     * def accessToken = auth.accessToken
 
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)' }
+    * def mutationId = utilsJs.uuid()
 
     Given path '/vault/items', item.itemId
     And headers utilsJs.bearer(accessToken)
+    And header Idempotency-Key = mutationId
+    And header If-Match = utilsJs.etag(item.itemRevision)
     When method delete
     Then status 200
 
@@ -64,9 +75,12 @@ Feature: Delete secure item (soft delete)
 
     * def authB = call read(createUserHelper) credentialsB
     * def tokenB = authB.accessToken
+    * def mutationId = utilsJs.uuid()
 
     Given path '/vault/items', itemA.itemId
     And headers utilsJs.bearer(tokenB)
+    And header Idempotency-Key = mutationId
+    And header If-Match = utilsJs.etag(itemA.itemRevision)
     When method delete
     Then status 404
 
@@ -78,15 +92,20 @@ Feature: Delete secure item (soft delete)
 
     * def auth = call read(createUserHelper) credentials
     * def accessToken = auth.accessToken
+    * def mutationId = utilsJs.uuid()
 
     Given path '/vault/items', '00000000-0000-0000-0000-000000000000'
     And headers utilsJs.bearer(accessToken)
+    And header Idempotency-Key = mutationId
+    And header If-Match = '"1"'
     When method delete
     Then status 404
 
 
   Scenario: Fail to delete item without authentication
-
+    * def mutationId = utilsJs.uuid()
     Given path '/vault/items', '00000000-0000-0000-0000-000000000000'
+    And header Idempotency-Key = mutationId
+    And header If-Match = '"1"'
     When method delete
     Then status 401

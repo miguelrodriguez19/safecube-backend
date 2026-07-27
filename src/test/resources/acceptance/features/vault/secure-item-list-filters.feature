@@ -43,7 +43,7 @@ Feature: List secure items with filters
 
     Given path '/vault/items'
     And headers utilsJs.bearer(accessToken)
-    And param createdAfter = second.createdAt
+    And param createdAfter = second.updatedAt
     When method get
     Then status 200
 
@@ -67,7 +67,7 @@ Feature: List secure items with filters
 
     Given path '/vault/items'
     And headers utilsJs.bearer(accessToken)
-    And param updatedAfter = second.createdAt
+    And param updatedAfter = first.updatedAt
     When method get
     Then status 200
 
@@ -84,10 +84,13 @@ Feature: List secure items with filters
     * def accessToken = auth.accessToken
 
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)', displayHint: 'To be deleted' }
+    * def mutationId = utilsJs.uuid()
 
     # Soft delete
     Given path '/vault/items', item.itemId
     And headers utilsJs.bearer(accessToken)
+    And header Idempotency-Key = mutationId
+    And header If-Match = utilsJs.etag(item.itemRevision)
     When method delete
     Then status 200
 
@@ -108,10 +111,13 @@ Feature: List secure items with filters
     * def accessToken = auth.accessToken
 
     * def item = call read(createSecureItemHelper) { accessToken: '#(accessToken)', displayHint: 'Deleted item' }
+    * def mutationId = utilsJs.uuid()
 
     # Soft delete
     Given path '/vault/items', item.itemId
     And headers utilsJs.bearer(accessToken)
+    And header Idempotency-Key = mutationId
+    And header If-Match = utilsJs.etag(item.itemRevision)
     When method delete
     Then status 200
     And match response.itemId == item.itemId
@@ -144,7 +150,7 @@ Feature: List secure items with filters
     Given path '/vault/items'
     And headers utilsJs.bearer(accessToken)
     And param type = 'PASSWORD'
-    And param createdAfter = oldNote.createdAt
+    And param createdAfter = oldNote.updatedAt
     When method get
     Then status 200
 

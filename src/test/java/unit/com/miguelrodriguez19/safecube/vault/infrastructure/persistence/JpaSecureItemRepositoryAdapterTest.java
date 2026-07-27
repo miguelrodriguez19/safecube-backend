@@ -154,9 +154,9 @@ class JpaSecureItemRepositoryAdapterTest {
     final var accountId = UUID.randomUUID();
     final var deletedAt = Instant.now();
 
-    target.softDelete(itemId, accountId, deletedAt);
+    target.softDeleteIfRevisionMatches(itemId, accountId, 3L, 4L, 10L, deletedAt);
 
-    verify(jpaRepository).softDelete(itemId, accountId, deletedAt);
+    verify(jpaRepository).softDeleteIfRevisionMatches(itemId, accountId, 3L, 4L, 10L, deletedAt);
   }
 
   @Test
@@ -173,25 +173,21 @@ class JpaSecureItemRepositoryAdapterTest {
             "payload".getBytes(),
             now);
 
-    final var entity =
-        new SecureItemJpaEntity(
+    target.updateIfRevisionMatches(domainItem, 1L);
+
+    verify(jpaRepository)
+        .updateIfRevisionMatches(
             domainItem.getItemId(),
             domainItem.getAccountId(),
+            1L,
+            domainItem.getItemRevision(),
+            domainItem.getChangeSequence(),
             domainItem.getItemType().name(),
             domainItem.getSchemaVersion(),
             domainItem.getDisplayHint(),
             domainItem.getPayload(),
             domainItem.getPayloadVersion(),
-            domainItem.getCreatedAt(),
-            domainItem.getUpdatedAt(),
-            null);
-
-    when(mapper.toEntity(domainItem)).thenReturn(entity);
-
-    target.update(domainItem);
-
-    verify(mapper).toEntity(domainItem);
-    verify(jpaRepository).save(entity);
+            domainItem.getUpdatedAt());
   }
 
   @Test
