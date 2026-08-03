@@ -11,6 +11,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.Secur
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.SecureItemMutationJpaRepository;
 import integration.annotation.IntegrationTest;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -29,7 +30,7 @@ class CreateSecureItemIdempotencyIntegrationTest {
   void shouldExecuteConcurrentIdenticalCreateOnlyOnce() throws Exception {
     final var accountId = insertAuthAccount();
     final var mutationId = UUID.randomUUID();
-    final var firstReceivedAt = Instant.now();
+    final var firstReceivedAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
     final var start = new CountDownLatch(1);
     final var executor = Executors.newFixedThreadPool(2);
 
