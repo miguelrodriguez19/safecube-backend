@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 15-04-2026 09:52:03
+Updated: 03-08-2026 07:35:17
 
 ```
 safecube-backend/
@@ -194,6 +194,7 @@ safecube-backend/
 │   │   │               │   │   │       │   ├── CreateSecureItemResult.java
 │   │   │               │   │   │       │   ├── DeleteSecureItemResult.java
 │   │   │               │   │   │       │   ├── GetSecureItemResult.java
+│   │   │               │   │   │       │   ├── ListSecureItemChangesResult.java
 │   │   │               │   │   │       │   ├── ListSecureItemsResult.java
 │   │   │               │   │   │       │   └── UpdateSecureItemResult.java
 │   │   │               │   │   │       └── ItemTypeDto.java
@@ -204,6 +205,7 @@ safecube-backend/
 │   │   │               │   │   │   └── ItemTypeMapper.java
 │   │   │               │   │   ├── port/
 │   │   │               │   │   │   └── out/
+│   │   │               │   │   │       ├── SecureItemMutationRepository.java
 │   │   │               │   │   │       ├── SecureItemRepository.java
 │   │   │               │   │   │       └── VaultKeyMaterialRepository.java
 │   │   │               │   │   └── usecase/
@@ -215,7 +217,9 @@ safecube-backend/
 │   │   │               │   │           ├── CreateSecureItemUseCase.java
 │   │   │               │   │           ├── DeleteSecureItemUseCase.java
 │   │   │               │   │           ├── GetSecureItemUseCase.java
+│   │   │               │   │           ├── ListSecureItemChangesUseCase.java
 │   │   │               │   │           ├── ListSecureItemsUseCase.java
+│   │   │               │   │           ├── SecureItemMutationHasher.java
 │   │   │               │   │           └── UpdateSecureItemUseCase.java
 │   │   │               │   ├── domain/
 │   │   │               │   │   ├── exception/
@@ -233,6 +237,9 @@ safecube-backend/
 │   │   │               │       │   ├── jpa/
 │   │   │               │       │   │   ├── SecureItemJpaEntity.java
 │   │   │               │       │   │   ├── SecureItemJpaRepository.java
+│   │   │               │       │   │   ├── SecureItemMutationId.java
+│   │   │               │       │   │   ├── SecureItemMutationJpaEntity.java
+│   │   │               │       │   │   ├── SecureItemMutationJpaRepository.java
 │   │   │               │       │   │   ├── VaultKeyMaterialJpaEntity.java
 │   │   │               │       │   │   └── VaultKeyMaterialJpaRepository.java
 │   │   │               │       │   ├── mapper/
@@ -240,6 +247,7 @@ safecube-backend/
 │   │   │               │       │   │   └── VaultKeyMaterialMapper.java
 │   │   │               │       │   ├── specification/
 │   │   │               │       │   │   └── SecureItemSpecifications.java
+│   │   │               │       │   ├── JpaSecureItemMutationRepositoryAdapter.java
 │   │   │               │       │   ├── JpaSecureItemRepositoryAdapter.java
 │   │   │               │       │   └── JpaVaultKeyMaterialRepositoryAdapter.java
 │   │   │               │       └── web/
@@ -254,7 +262,9 @@ safecube-backend/
 │   │   │               │           │       │   ├── DeleteSecureItemRequest.java
 │   │   │               │           │       │   └── UpdateSecureItemRequest.java
 │   │   │               │           │       └── response/
+│   │   │               │           │           ├── ListSecureItemChangesResponse.java
 │   │   │               │           │           ├── ListSecureItemsResponse.java
+│   │   │               │           │           ├── SecureItemChangeResponse.java
 │   │   │               │           │           ├── SecureItemResponse.java
 │   │   │               │           │           └── SecureItemSummaryResponse.java
 │   │   │               │           ├── mapper/
@@ -312,6 +322,9 @@ safecube-backend/
 │       │   │               │       └── persistence/
 │       │   │               │           └── JpaUserProfileRepositoryAdapterIntegrationTest.java
 │       │   │               ├── vault/
+│       │   │               │   ├── application/
+│       │   │               │   │   └── usecase/
+│       │   │               │   │       └── CreateSecureItemIdempotencyIntegrationTest.java
 │       │   │               │   └── infrastructure/
 │       │   │               │       └── persistence/
 │       │   │               │           ├── JpaSecureItemRepositoryAdapterIntegrationTest.java
@@ -421,6 +434,7 @@ safecube-backend/
 │           │   │   │   ├── secure-item-list-filters.feature
 │           │   │   │   ├── secure-item-list-ordering.feature
 │           │   │   │   ├── secure-item-list.feature
+│           │   │   │   ├── secure-item-sync-protocol.feature
 │           │   │   │   ├── secure-item-update.feature
 │           │   │   │   ├── vault-key-get.feature
 │           │   │   │   ├── vault-key-init.feature
