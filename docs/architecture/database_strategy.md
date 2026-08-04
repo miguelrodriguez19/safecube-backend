@@ -105,10 +105,10 @@ Responsabilidad:
 
 ---
 
-### 3.4 vault_secure_items
+### 3.4 vault_items
 
 ```sql
-CREATE TABLE IF NOT EXISTS vault_secure_items (
+CREATE TABLE IF NOT EXISTS vault_items (
     item_id UUID PRIMARY KEY, 
     account_id UUID NOT NULL, 
     item_type VARCHAR (50) NOT NULL, 
@@ -121,9 +121,9 @@ CREATE TABLE IF NOT EXISTS vault_secure_items (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-   CREATE INDEX IF NOT EXISTS idx_vault_items_account_id ON vault_secure_items (account_id);
-   CREATE INDEX IF NOT EXISTS idx_vault_items_updated_at ON vault_secure_items (updated_at);
-   CREATE INDEX IF NOT EXISTS idx_vault_items_deleted_at ON vault_secure_items (deleted_at);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_account_id ON vault_items (account_id);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_updated_at ON vault_items (updated_at);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_deleted_at ON vault_items (deleted_at);
 ```
 
 Responsabilidad:
@@ -132,8 +132,6 @@ Responsabilidad:
 - Aislamiento estricto por account_id.
 - Soporte de sincronización mediante timestamps.
 - Implementa borrado lógico explícito (deleted_at).
-
-💡 Nota: aunque internamente uses otro nombre de tabla, el **concepto debe existir** en el doc.
 
 ---
 
@@ -171,11 +169,11 @@ Responsabilidad:
 
 * auth_accounts (1) —— (0..*) auth_refresh_tokens
 * auth_accounts (1) —— (0..1) user_profiles
-* auth_accounts (1) —— (0..*) vault_secure_items
+* auth_accounts (1) —— (0..*) vault_items
 * auth_accounts (1) ── (1) vault_key_material
 
-> La relación entre `auth_accounts` y `vault_secure_items`
-> es **lógica**, no implementada mediante foreign keys físicas en v1.
+> La relación entre `auth_accounts` y `vault_items` se refuerza mediante una
+> foreign key física en el esquema actual.
 
 ---
 
@@ -209,7 +207,7 @@ erDiagram
         TIMESTAMP updated_at
     }
     
-    VAULT_SECURE_ITEMS {
+    VAULT_ITEMS {
         UUID item_id PK
         UUID account_id
         VARCHAR item_type
@@ -222,7 +220,7 @@ erDiagram
         TIMESTAMP deleted_at
     }
     
-    vault_key_material {
+    VAULT_KEY_MATERIAL {
         UUID account_id
         BYTEA kek_enc_master
         BYTEA kek_enc_recovery
@@ -240,8 +238,8 @@ erDiagram
 
     AUTH_ACCOUNTS ||--o{ AUTH_REFRESH_TOKENS : has
     AUTH_ACCOUNTS ||--o| USER_PROFILES : owns
-    AUTH_ACCOUNTS ||--o{ VAULT_SECURE_ITEMS : owns
-    AUTH_ACCOUNTS ||--o| VAULT_SECURE_ITEMS : owns
+    AUTH_ACCOUNTS ||--o{ VAULT_ITEMS : owns
+    AUTH_ACCOUNTS ||--o| VAULT_KEY_MATERIAL : owns
 
 ```
 
@@ -249,7 +247,7 @@ erDiagram
 
 ## 6. Decisiones Explícitas
 
-* No existen `FOREIGN KEY` físicas en v1.
+* Las relaciones de propiedad se refuerzan mediante `FOREIGN KEY` y acciones `ON DELETE` explícitas.
 * No existe `deleted_at` en tablas de identidad (`auth`, `user`).
 * El slice `vault` implementa borrado lógico explícito (`deleted_at`)
   para soportar sincronización entre clientes.
@@ -261,7 +259,49 @@ erDiagram
 
 ---
 
-## 7. Evolución Futura
+## 7. Seguridad de acceso y Supabase
+
+Las siete tablas de SafeCube en el esquema `public` son:
+
+* `auth_accounts`
+* `auth_refresh_tokens`
+* `user_profiles`
+* `vault_item_change_cursors`
+* `vault_items`
+* `vault_item_mutations`
+* `vault_key_material`
+
+Todas tienen RLS habilitada en `docker/postgres/init-schema.sql`. No se crean
+políticas RLS: los roles sujetos a RLS quedan denegados por defecto. SafeCube no
+usa Supabase Auth, `auth.uid()` ni la Data API de Supabase.
+
+El backend utiliza un rol JDBC privado `safecube_app`, que:
+
+* puede iniciar sesión, no es superusuario y no es propietario de las tablas;
+* tiene `BYPASSRLS` porque la autorización funcional se realiza en Spring Boot
+  con el `accountId` del JWT propio;
+* recibe únicamente `USAGE` sobre `public` y `SELECT`, `INSERT` y `UPDATE` según
+  la matriz real de repositorios;
+* no recibe `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER` ni `CREATE`.
+
+El script `docker/postgres/supabase-security.sql` revoca explícitamente los
+privilegios de `anon`, `authenticated`, `service_role` y `PUBLIC` sobre las
+tablas de SafeCube. También revoca esos permisos por defecto para objetos nuevos.
+Debe ejecutarse con el rol que crea las tablas; en Supabase normalmente es
+`postgres`. La contraseña de `safecube_app` se configura fuera del repositorio.
+
+En Koyeb la aplicación se configura con `DATABASE_URL`, `DATABASE_USERNAME` y
+`DATABASE_PASSWORD`. La URL JDBC debe incluir `sslmode=require`, debe utilizar
+conexión directa o Supavisor en session mode, y nunca debe usar el usuario
+`postgres`, `SUPABASE_ANON_KEY` ni `SUPABASE_SERVICE_ROLE_KEY`.
+
+Después de reconstruir la base de datos se deben repetir las comprobaciones de
+RLS, privilegios de la Data API, atributos del rol, propietarios de tablas y
+Security Advisor descritas en el runbook operativo.
+
+---
+
+## 8. Evolución Futura
 
 Posibles extensiones futuras:
 
