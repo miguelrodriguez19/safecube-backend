@@ -9,7 +9,7 @@ responsabilidades por slice y el esquema actual soportado.
 
 La base de datos de SafeCube sigue los siguientes principios:
 
-* **Single Source of Truth**: el esquema SQL es la referencia definitiva del modelo persistente.
+* **Single Source of Truth**: las migraciones versionadas de `db/migrations` son la referencia definitiva del modelo persistente.
 * **Explicit lifecycle**: los estados relevantes (enabled, revoked, expired, disabled) se representan explícitamente
   mediante columnas.
 * **No implicit deletes**: no se utilizan borrados lógicos implícitos salvo decisión explícita documentada.
@@ -22,19 +22,24 @@ La base de datos de SafeCube sigue los siguientes principios:
 ### 2.1 Local Development
 
 * Base de datos PostgreSQL levantada vía **docker-compose**.
-* Inicialización mediante `docker/postgres/init-schema.sql`.
+* PostgreSQL se inicia vacío; el bootstrap administrativo crea los roles y el
+  contenedor Flyway aplica todas las migraciones versionadas.
 
 ### 2.2 Tests (Integration / Acceptance)
 
 * Uso de **Testcontainers**.
-* El esquema se copia automáticamente durante el build y se monta como script de inicialización.
-* No existen migraciones dinámicas en tests.
+* PostgreSQL se inicia vacío, se ejecuta el bootstrap de roles y Flyway aplica
+  las mismas migraciones que se utilizan en local y producción.
+* Spring Boot usa `safecube_app`; las comprobaciones de roles, RLS y privilegios
+  utilizan una conexión administrativa separada.
 
 ### 2.3 Producción
 
 * La base de datos se gestiona de forma **manual/administrada**.
-* Alojada en un servidor web dedicado.
-* No se ejecutan scripts automáticos desde la aplicación.
+* GitHub Actions ejecuta `info`, `validate` y `migrate` con el contenedor
+  oficial fijado `flyway/flyway:13.1.0`, protegido por el entorno `production`.
+* La migración termina antes del despliegue de Koyeb y nunca se ejecuta desde
+  Spring Boot ni desde el JAR productivo.
 
 ---
 
@@ -251,8 +256,13 @@ erDiagram
 * No existe `deleted_at` en tablas de identidad (`auth`, `user`).
 * El slice `vault` implementa borrado lógico explícito (`deleted_at`)
   para soportar sincronización entre clientes.
-* No hay migraciones automáticas (Flyway/Liquibase) en v1.
-* El esquema evoluciona mediante decisiones arquitectónicas documentadas (ADR).
+* `db/migrations/V1__initial_schema.sql` crea las siete tablas, sus índices,
+  restricciones y RLS. Es determinista y no utiliza `IF NOT EXISTS`.
+* `db/migrations/V2__configure_database_access.sql` aplica los grants,
+  revocaciones y privilegios por defecto.
+* El esquema evoluciona mediante nuevas migraciones Flyway inmutables y
+  decisiones arquitectónicas documentadas (ADR). Nunca se edita una migración
+  ya aplicada.
 * El slice `vault` utiliza timestamps (`created_at`, `updated_at`, `deleted_at`)
   como mecanismo de sincronización y concurrencia.
 * No se utilizan locks ni versionado optimista JPA.
@@ -271,7 +281,7 @@ Las siete tablas de SafeCube en el esquema `public` son:
 * `vault_item_mutations`
 * `vault_key_material`
 
-Todas tienen RLS habilitada en `docker/postgres/init-schema.sql`. No se crean
+Todas tienen RLS habilitada en `db/migrations/V1__initial_schema.sql`. No se crean
 políticas RLS: los roles sujetos a RLS quedan denegados por defecto. SafeCube no
 usa Supabase Auth, `auth.uid()` ni la Data API de Supabase.
 
@@ -284,11 +294,18 @@ El backend utiliza un rol JDBC privado `safecube_app`, que:
   la matriz real de repositorios;
 * no recibe `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER` ni `CREATE`.
 
-El script `docker/postgres/supabase-security.sql` revoca explícitamente los
-privilegios de `anon`, `authenticated`, `service_role` y `PUBLIC` sobre las
-tablas de SafeCube. También revoca esos permisos por defecto para objetos nuevos.
-Debe ejecutarse con el rol que crea las tablas; en Supabase normalmente es
-`postgres`. La contraseña de `safecube_app` se configura fuera del repositorio.
+El script administrativo `docker/postgres/supabase-security.sql` se ejecuta una
+única vez con una conexión administrativa para crear `safecube_app`,
+`safecube_migrator` y el esquema privado `safecube_meta`. No contiene
+contraseñas. Después, Flyway ejecuta `V2` con `safecube_migrator` y revoca
+explícitamente los privilegios de `anon`, `authenticated`, `service_role` y
+`PUBLIC` sobre las tablas de SafeCube. La contraseña de cada rol se configura
+fuera del repositorio.
+
+Flyway guarda su historial en `safecube_meta.flyway_schema_history` y utiliza
+`baselineOnMigrate=false`, `outOfOrder=false` y `cleanDisabled=true`. Como la
+base de producción está vacía, la primera ejecución aplica `V1`; no se ejecuta
+`baseline`.
 
 En Koyeb la aplicación se configura con `DATABASE_URL`, `DATABASE_USERNAME` y
 `DATABASE_PASSWORD`. La URL JDBC debe incluir `sslmode=require`, debe utilizar

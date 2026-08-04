@@ -8,33 +8,48 @@ en logs.
 
 * Tener una copia o respaldo verificable de la base de datos.
 * Disponer de una conexión administrativa a Supabase.
-* Confirmar el rol que crea las tablas. El script de producción debe ejecutarse
-  con ese rol; normalmente es `postgres`.
-* Detener temporalmente el despliegue de Koyeb durante una reconstrucción.
+* Confirmar que la base de producción está vacía respecto a las tablas de
+  SafeCube. No eliminar esquemas gestionados por Supabase.
+* Disponer de acceso administrativo para ejecutar el bootstrap una sola vez.
+* Disponer de un entorno GitHub `production` con aprobación requerida.
 
 ## Orden de ejecución
 
-1. Detener temporalmente Koyeb si se va a reconstruir la base.
-2. Ejecutar `docker/postgres/init-schema.sql` para crear el esquema y habilitar
-   RLS en las siete tablas de SafeCube.
-3. Ejecutar `docker/postgres/supabase-security.sql` con el rol administrativo.
-4. Establecer la contraseña de `safecube_app` usando el gestor de secretos:
+1. Hacer un backup verificable y comprobar que no existen tablas de SafeCube en
+   `public`.
+2. Ejecutar `docker/postgres/supabase-security.sql` una única vez con el rol
+   administrativo de Supabase. El script crea `safecube_app`,
+   `safecube_migrator` y `safecube_meta`, pero no contiene contraseñas.
+3. Establecer las contraseñas de ambos roles en el gestor de secretos:
 
    ```sql
    ALTER ROLE safecube_app
    WITH PASSWORD '<REPLACE_WITH_SECRET>';
+   ALTER ROLE safecube_migrator
+   WITH PASSWORD '<REPLACE_WITH_SECRET>';
    ```
 
-5. Configurar los secretos de Koyeb.
-6. Desplegar Spring Boot.
-7. Ejecutar smoke tests de registro, login, refresh, perfil y vault.
-8. Ejecutar los acceptance tests.
-9. Revisar Supabase Security Advisor.
+4. Configurar en el entorno GitHub `production` los secretos:
 
-El script de hardening no cambia propietarios ni almacena contraseñas. Si el
-propietario real que crea las tablas no es el rol que ejecuta el script, detener
-el procedimiento y ajustar la sentencia `ALTER DEFAULT PRIVILEGES` al propietario
-correcto antes de continuar.
+   ```text
+   SUPABASE_MIGRATOR_JDBC_URL=<SUPABASE_JDBC_URL_WITH_SSL>
+   SUPABASE_MIGRATOR_USERNAME=safecube_migrator
+   SUPABASE_MIGRATOR_PASSWORD=<MIGRATOR_SECRET>
+   ```
+
+5. Fusionar el cambio en `main` y aprobar el job `migrate-production`.
+6. Flyway ejecutará `info`, `validate` y `migrate`; en la primera ejecución
+   aplicará `V1` y `V2`. No se ejecuta `flyway baseline`.
+7. Verificar `safecube_meta.flyway_schema_history`, RLS, propietarios y grants.
+8. Permitir el despliegue de Koyeb con `safecube_app`.
+9. Ejecutar smoke tests de registro, login, refresh, perfil y vault, además de
+   los acceptance tests.
+10. Revisar Supabase Security Advisor.
+
+El bootstrap no almacena contraseñas. Flyway crea las tablas como
+`safecube_migrator`, que es su propietario y tiene capacidad DDL. Si la
+verificación inicial encuentra tablas de SafeCube, detener el procedimiento e
+inspeccionar la base: `V1` debe fallar ante objetos inesperados.
 
 ## Configuración de Koyeb
 
@@ -51,9 +66,32 @@ DATABASE_URL=<SUPABASE_JDBC_URL_WITH_SSL>
 Supavisor en session mode si se necesita compatibilidad IPv4. No usar transaction
 mode salvo una necesidad demostrada.
 
-No configurar `DB_USER`, `DB_PWD` o `DB_URL` para este despliegue, no usar el
-usuario `postgres`, y no usar claves `SUPABASE_ANON_KEY` o
+No usar el usuario `postgres` para Spring Boot, `safecube_migrator` para Koyeb,
+ni claves `SUPABASE_ANON_KEY` o
 `SUPABASE_SERVICE_ROLE_KEY`.
+
+## Configuración de Flyway
+
+El job protegido de GitHub utiliza `flyway/flyway:13.1.0` y monta únicamente
+`db/migrations` en modo lectura. La configuración efectiva es:
+
+```text
+locations=filesystem:/flyway/sql
+schemas=safecube_meta,public
+defaultSchema=safecube_meta
+table=flyway_schema_history
+cleanDisabled=true
+baselineOnMigrate=false
+outOfOrder=false
+ignoreMigrationPatterns=*:pending
+```
+
+`*:pending` se ignora únicamente para permitir que `validate` se ejecute antes
+de `migrate` sobre una base vacía; las migraciones aplicadas y sus checksums
+siguen validándose.
+
+Las migraciones aplicadas son inmutables. Una corrección futura se implementa
+con una nueva migración `V`; nunca se modifica una versión ya registrada.
 
 ## Queries de verificación
 
@@ -112,6 +150,30 @@ ORDER BY tablename;
 ```
 
 Ninguna tabla de SafeCube debe tener como propietario a `safecube_app`.
+
+### Historial de Flyway
+
+```sql
+SELECT installed_rank, version, description, success
+FROM safecube_meta.flyway_schema_history
+ORDER BY installed_rank;
+```
+
+La primera puesta en producción debe mostrar `V1` y `V2` con `success = true`.
+
+### Roles y DDL
+
+```sql
+SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole,
+       rolreplication, rolbypassrls
+FROM pg_roles
+WHERE rolname IN ('safecube_app', 'safecube_migrator')
+ORDER BY rolname;
+```
+
+`safecube_app` debe tener únicamente los grants de aplicación. El migrador es
+el propietario de las tablas y el único de los dos roles con `CREATE` sobre
+`public`.
 
 ## Rollback
 

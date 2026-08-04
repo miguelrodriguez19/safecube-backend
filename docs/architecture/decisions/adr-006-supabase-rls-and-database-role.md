@@ -4,7 +4,8 @@
 * **Fecha**: 2026-08-04
 * **Decisores**: SafeCube Backend
 * **Relacionado con**:
-  * `docker/postgres/init-schema.sql`
+  * `db/migrations/V1__initial_schema.sql`
+  * `db/migrations/V2__configure_database_access.sql`
   * `docker/postgres/supabase-security.sql`
   * `docs/architecture/database_strategy.md`
 
@@ -42,9 +43,11 @@ Supabase Auth, `auth.uid()`, `SUPABASE_ANON_KEY` y
 ## 4. Decisión
 
 Se habilita RLS en las siete tablas de SafeCube y no se crean políticas. La
-denegación por defecto protege a los roles sujetos a RLS. El script de
-hardening revoca los privilegios de `anon`, `authenticated`, `service_role` y
-`PUBLIC`, y concede permisos mínimos a un rol privado para Spring Boot.
+denegación por defecto protege a los roles sujetos a RLS. `V1` crea el esquema
+determinísticamente y `V2` revoca los privilegios de `anon`, `authenticated`,
+`service_role` y `PUBLIC`, y concede permisos mínimos a un rol privado para
+Spring Boot. Un bootstrap administrativo crea los roles y el esquema privado
+de historial antes de la primera migración.
 
 ## 5. Rol `safecube_app`
 
@@ -65,8 +68,8 @@ extensiones ni componentes externos de Supabase.
 ## 7. RLS sin políticas
 
 No se añaden `POLICY`, `FORCE ROW LEVEL SECURITY` ni expresiones `auth.uid()`.
-Las tablas tienen RLS habilitada mediante el esquema fuente de verdad, que se
-utiliza tanto en Docker Compose como en Testcontainers.
+Las tablas tienen RLS habilitada mediante `V1`, que se utiliza tanto en Docker
+Compose como en Testcontainers y producción.
 
 ## 8. Motivo para no utilizar `auth.uid()`
 
@@ -99,7 +102,7 @@ que no se modifica el dominio ni se introduce una abstracción de autorización.
 ## 11. Consecuencias
 
 * La Data API no puede leer ni escribir las tablas de SafeCube.
-* Una reconstrucción del esquema conserva RLS porque forma parte del script base.
+* Una reconstrucción del esquema conserva RLS porque forma parte de `V1`.
 * La contraseña y los secretos de Koyeb requieren configuración operativa.
 * Un error de autorización en Spring Boot seguiría siendo relevante porque
   `safecube_app` omite RLS.
@@ -112,20 +115,22 @@ que no se modifica el dominio ni se introduce una abstracción de autorización.
 * Uso de la service-role key.
 * Conexión de Spring Boot como `postgres` o como propietario de las tablas.
 * Transaction pooler como opción por defecto para un backend persistente.
-* Flyway o Liquibase en esta versión.
+* Migraciones ejecutadas durante el arranque de Spring Boot.
 
 ## 13. Estrategia de tests
 
-Testcontainers ejecuta, en orden, `init-schema.sql`, el script de roles de test y
-`supabase-security.sql`. Los tests de integración comprueban RLS, denegación de
-`anon`, `authenticated` y `service_role`, permisos mínimos de `safecube_app`,
-ausencia de `DELETE` y atributos del rol. Los acceptance tests cubren el
-aislamiento HTTP entre dos cuentas.
+Testcontainers inicia PostgreSQL vacío, ejecuta el bootstrap de roles y aplica
+`V1` y `V2` con Flyway. Los tests de integración comprueban que una segunda
+ejecución no aplica cambios, que `safecube_app` no puede ejecutar DDL, que
+`safecube_migrator` sí puede hacerlo, además de RLS, denegación de `anon`,
+`authenticated` y `service_role`, permisos mínimos y atributos de los roles.
+Los acceptance tests cubren el aislamiento HTTP entre dos cuentas.
 
 ## 14. Procedimiento de despliegue
 
 El procedimiento operativo está en
-`docs/operations/supabase-rls-hardening.md`. En resumen: reconstruir o preparar
-la base, ejecutar ambos scripts, establecer la contraseña fuera del repositorio,
-configurar la URL JDBC con SSL y los secretos de Koyeb, desplegar, ejecutar
-smoke/acceptance tests y revisar Security Advisor.
+`docs/operations/supabase-rls-hardening.md`. En resumen: hacer backup, verificar
+que el esquema de SafeCube está vacío, ejecutar una vez el bootstrap, configurar
+los tres secretos de Flyway en el entorno protegido de GitHub, aprobar la
+migración `V1`/`V2`, desplegar Koyeb con `safecube_app`, ejecutar smoke/acceptance
+tests y revisar Security Advisor.
