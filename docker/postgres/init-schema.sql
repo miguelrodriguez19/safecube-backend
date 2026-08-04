@@ -69,6 +69,15 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 
+CREATE TABLE IF NOT EXISTS vault_item_change_cursors (
+    account_id          UUID PRIMARY KEY,
+    last_sequence       BIGINT NOT NULL,
+    CONSTRAINT fk_vault_item_change_cursors_account
+        FOREIGN KEY (account_id) REFERENCES auth_accounts (account_id) ON DELETE RESTRICT,
+    CONSTRAINT chk_vault_item_change_cursors_sequence
+        CHECK (last_sequence > 0)
+);
+
 CREATE TABLE IF NOT EXISTS vault_items (
     item_id             UUID PRIMARY KEY,
     account_id          UUID NOT NULL,
@@ -77,6 +86,8 @@ CREATE TABLE IF NOT EXISTS vault_items (
     display_hint        VARCHAR(255) NOT NULL,
     payload             BYTEA NOT NULL,
     payload_version     BIGINT NOT NULL,
+    item_revision       BIGINT NOT NULL,
+    change_sequence     BIGINT NOT NULL,
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at          TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at          TIMESTAMP WITH TIME ZONE,
@@ -89,11 +100,16 @@ CREATE TABLE IF NOT EXISTS vault_items (
     CONSTRAINT chk_vault_items_versions
         CHECK (
             schema_version >= 0 AND
-            payload_version > 0
+            payload_version > 0 AND
+            item_revision > 0 AND
+            change_sequence > 0
             ),
 
     CONSTRAINT chk_vault_items_payload_size
-        CHECK (octet_length(payload) <= 1048576)  /* 1MB */
+        CHECK (octet_length(payload) <= 1048576),  /* 1MB */
+
+    CONSTRAINT uq_vault_items_account_change_sequence
+        UNIQUE (account_id, change_sequence)
 );
 
 CREATE INDEX IF NOT EXISTS idx_vault_items_account_id
@@ -102,12 +118,33 @@ CREATE INDEX IF NOT EXISTS idx_vault_items_account_id
 CREATE INDEX IF NOT EXISTS idx_vault_items_account_updated_at
     ON vault_items (account_id, updated_at);
 
+CREATE INDEX IF NOT EXISTS idx_vault_items_account_change_sequence
+    ON vault_items (account_id, change_sequence);
+
 CREATE INDEX IF NOT EXISTS idx_vault_items_account_deleted_at
     ON vault_items (account_id, deleted_at);
 
 CREATE INDEX IF NOT EXISTS idx_vault_items_active_account_updated
     ON vault_items (account_id, updated_at)
     WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS vault_item_mutations (
+    account_id          UUID NOT NULL,
+    mutation_id         UUID NOT NULL,
+    item_id             UUID NOT NULL,
+    operation           VARCHAR(16) NOT NULL,
+    request_hash        VARCHAR(64) NOT NULL,
+    payload_version     BIGINT NOT NULL,
+    item_revision       BIGINT NOT NULL,
+    change_sequence     BIGINT NOT NULL,
+    occurred_at         TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at          TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (account_id, mutation_id),
+    CONSTRAINT fk_vault_item_mutations_account
+        FOREIGN KEY (account_id) REFERENCES auth_accounts (account_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_vault_item_mutations_item
+        FOREIGN KEY (item_id) REFERENCES vault_items (item_id) ON DELETE RESTRICT
+);
 
 
 CREATE TABLE IF NOT EXISTS vault_key_material (

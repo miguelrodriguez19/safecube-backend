@@ -26,9 +26,12 @@ Feature: Get secure item by id
     And match response.schemaVersion == 1
     And match response.displayHint == 'Default secure item'
     And match response.payload == '#notnull'
-    And match response.payloadVersion == '#number'
+    And match response.payloadVersion == item.responsePayloadVersion
+    And match response.itemRevision == item.itemRevision
+    And match response.changeSequence == item.changeSequence
     And match response.updatedAt == '#present'
     And match response.deletedAt == null
+    And match responseHeaders['ETag'][0] == utilsJs.etag(item.itemRevision)
 
 
   Scenario: Fail to get item from another account

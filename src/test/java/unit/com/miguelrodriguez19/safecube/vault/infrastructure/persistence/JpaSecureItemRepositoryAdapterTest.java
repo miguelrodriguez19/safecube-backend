@@ -2,6 +2,7 @@ package unit.com.miguelrodriguez19.safecube.vault.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -125,6 +126,37 @@ class JpaSecureItemRepositoryAdapterTest {
   }
 
   @Test
+  void shouldFindChangesAfterTheRequestedSequence() {
+    final var accountId = UUID.randomUUID();
+    final var entity = getSecureItemJpaEntity(accountId);
+    final var domainItem = getSecureItem(entity);
+
+    when(jpaRepository.findByAccountIdAndChangeSequenceGreaterThanOrderByChangeSequenceAsc(
+            eq(accountId), eq(10L), any(Pageable.class)))
+        .thenReturn(List.of(entity));
+    when(mapper.toDomain(entity)).thenReturn(domainItem);
+
+    final var result = target.findChanges(accountId, 10L, 5);
+
+    assertThat(result).containsExactly(domainItem);
+    verify(jpaRepository)
+        .findByAccountIdAndChangeSequenceGreaterThanOrderByChangeSequenceAsc(
+            eq(accountId), eq(10L), any(Pageable.class));
+    verify(mapper).toDomain(entity);
+  }
+
+  @Test
+  void shouldReturnTheNextChangeSequenceForTheAccount() {
+    final var accountId = UUID.randomUUID();
+    when(jpaRepository.nextChangeSequence(accountId)).thenReturn(42L);
+
+    final var nextSequence = target.nextChangeSequence(accountId);
+
+    assertThat(nextSequence).isEqualTo(42L);
+    verify(jpaRepository).nextChangeSequence(accountId);
+  }
+
+  @Test
   void shouldFindItemsByAccountUsingFilter() {
     final var accountId = UUID.randomUUID();
     final var filter = getFilter(ItemTypeDto.PASSWORD);
@@ -154,9 +186,14 @@ class JpaSecureItemRepositoryAdapterTest {
     final var accountId = UUID.randomUUID();
     final var deletedAt = Instant.now();
 
-    target.softDelete(itemId, accountId, deletedAt);
+    when(jpaRepository.softDeleteIfRevisionMatches(itemId, accountId, 3L, 4L, 10L, deletedAt))
+        .thenReturn(0);
 
-    verify(jpaRepository).softDelete(itemId, accountId, deletedAt);
+    final var deleted =
+        target.softDeleteIfRevisionMatches(itemId, accountId, 3L, 4L, 10L, deletedAt);
+
+    assertThat(deleted).isFalse();
+    verify(jpaRepository).softDeleteIfRevisionMatches(itemId, accountId, 3L, 4L, 10L, deletedAt);
   }
 
   @Test
@@ -173,25 +210,36 @@ class JpaSecureItemRepositoryAdapterTest {
             "payload".getBytes(),
             now);
 
-    final var entity =
-        new SecureItemJpaEntity(
+    when(jpaRepository.updateIfRevisionMatches(
             domainItem.getItemId(),
             domainItem.getAccountId(),
+            1L,
+            domainItem.getItemRevision(),
+            domainItem.getChangeSequence(),
             domainItem.getItemType().name(),
             domainItem.getSchemaVersion(),
             domainItem.getDisplayHint(),
             domainItem.getPayload(),
             domainItem.getPayloadVersion(),
-            domainItem.getCreatedAt(),
-            domainItem.getUpdatedAt(),
-            null);
+            domainItem.getUpdatedAt()))
+        .thenReturn(0);
 
-    when(mapper.toEntity(domainItem)).thenReturn(entity);
+    final var updated = target.updateIfRevisionMatches(domainItem, 1L);
 
-    target.update(domainItem);
-
-    verify(mapper).toEntity(domainItem);
-    verify(jpaRepository).save(entity);
+    assertThat(updated).isFalse();
+    verify(jpaRepository)
+        .updateIfRevisionMatches(
+            domainItem.getItemId(),
+            domainItem.getAccountId(),
+            1L,
+            domainItem.getItemRevision(),
+            domainItem.getChangeSequence(),
+            domainItem.getItemType().name(),
+            domainItem.getSchemaVersion(),
+            domainItem.getDisplayHint(),
+            domainItem.getPayload(),
+            domainItem.getPayloadVersion(),
+            domainItem.getUpdatedAt());
   }
 
   @Test

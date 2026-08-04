@@ -15,5 +15,7 @@ public record SecureItemSummaryResponse(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int schemaVersion,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String displayHint,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long payloadVersion,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long itemRevision,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long changeSequence,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant updatedAt,
     @Schema(type = "string", format = "date-time", nullable = true) Instant deletedAt) {}

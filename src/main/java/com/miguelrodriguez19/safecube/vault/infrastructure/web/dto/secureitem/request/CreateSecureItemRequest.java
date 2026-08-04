@@ -27,4 +27,5 @@ public record CreateSecureItemRequest(
             description = "Non-sensitive display hint (e.g., title) used for listing.",
             maxLength = 255)
         @NotBlank @Size(max = 255) String displayHint,
-    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload) {}
+    @Schema(description = "Opaque encrypted payload bytes.", format = "byte") @NotNull byte[] payload,
+    @Schema(description = "Client-owned cryptographic payload generation.") @NotNull Long payloadVersion) {}

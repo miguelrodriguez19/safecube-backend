@@ -22,6 +22,8 @@ public class SecureItemMapper {
         domain.getDisplayHint(),
         domain.getPayload(),
         domain.getPayloadVersion(),
+        domain.getItemRevision(),
+        domain.getChangeSequence(),
         domain.getCreatedAt(),
         domain.getUpdatedAt(),
         domain.getDeletedAt());
@@ -36,6 +38,8 @@ public class SecureItemMapper {
         entity.getDisplayHint(),
         entity.getPayload(),
         entity.getPayloadVersion(),
+        entity.getItemRevision(),
+        entity.getChangeSequence(),
         entity.getCreatedAt(),
         entity.getUpdatedAt(),
         entity.getDeletedAt());

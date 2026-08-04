@@ -79,7 +79,7 @@ Feature: Secure items API security
     Given path '/vault/items', "' OR '1'='1"
     And headers utilsJs.bearer(accessToken)
     When method get
-    Then status 500
+    Then status 400
 
 
   Scenario: Reject XSS payload in query params

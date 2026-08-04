@@ -11,4 +11,6 @@ public record CreateSecureItemCommand(
     int schemaVersion,
     String displayHint,
     byte[] payload,
+    long payloadVersion,
+    UUID mutationId,
     Instant createdAt) {}

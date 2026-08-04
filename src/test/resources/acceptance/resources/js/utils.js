@@ -17,6 +17,20 @@ function fn() {
     };
 
     /**
+     * Generate a UUID for mutation identifiers.
+     */
+    utils.uuid = function() {
+        return java.util.UUID.randomUUID().toString();
+    };
+
+    /**
+     * Format a server-owned item revision as a strong HTTP ETag.
+     */
+    utils.etag = function(itemRevision) {
+        return '"' + itemRevision + '"';
+    };
+
+    /**
      * Convert string to Base64 (for byte[] JSON fields).
      */
     utils.base64 = function(str) {

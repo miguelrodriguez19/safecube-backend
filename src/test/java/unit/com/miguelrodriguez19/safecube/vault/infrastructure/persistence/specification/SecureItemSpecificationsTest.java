@@ -81,7 +81,7 @@ class SecureItemSpecificationsTest {
     final Predicate predicate = mock(Predicate.class);
 
     when(root.get("updatedAt")).thenReturn((Path) path);
-    when(cb.greaterThanOrEqualTo(path, updatedAt)).thenReturn(predicate);
+    when(cb.greaterThan(path, updatedAt)).thenReturn(predicate);
 
     final Specification<SecureItemJpaEntity> spec =
         SecureItemSpecifications.updatedAfter(updatedAt);
@@ -89,7 +89,7 @@ class SecureItemSpecificationsTest {
     final var result = spec.toPredicate(root, query, cb);
 
     assertThat(result).isSameAs(predicate);
-    verify(cb).greaterThanOrEqualTo(path, updatedAt);
+    verify(cb).greaterThan(path, updatedAt);
   }
 
   @Test

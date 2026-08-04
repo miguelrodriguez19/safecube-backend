@@ -49,7 +49,7 @@ public class OpenApiDefaultsConfig {
       // 404 - Not found (resource / account / vault)
       responses.putIfAbsent("404", new ApiResponse().description("Not found"));
 
-      // 409 - Conflict (already exists, stale update)
+      // 409 - Conflict (already exists or idempotency key reused with different content)
       responses.putIfAbsent("409", new ApiResponse().description("Conflict"));
 
       // 500 - Internal error
