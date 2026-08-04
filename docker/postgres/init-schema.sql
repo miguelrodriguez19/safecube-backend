@@ -166,3 +166,14 @@ CREATE TABLE IF NOT EXISTS vault_key_material (
             REFERENCES auth_accounts (account_id)
             ON DELETE CASCADE
 );
+
+
+-- SafeCube tables are exposed in the public schema but are never accessed through
+-- Supabase's Data API. Keep RLS enabled as a database-level defence in depth.
+ALTER TABLE public.auth_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auth_refresh_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vault_item_change_cursors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vault_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vault_item_mutations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vault_key_material ENABLE ROW LEVEL SECURITY;

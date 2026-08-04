@@ -538,6 +538,7 @@
                                     <directory>docker/postgres</directory>
                                     <includes>
                                         <include>init-schema.sql</include>
+                                        <include>supabase-security.sql</include>
                                     </includes>
                                 </resource>
                             </resources>
