@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 03-08-2026 07:35:17
+Updated: 04-08-2026 02:26:29
 
 ```
 safecube-backend/
@@ -392,7 +392,9 @@ safecube-backend/
 │       │                       │           ├── CreateSecureItemUseCaseTest.java
 │       │                       │           ├── DeleteSecureItemUseCaseTest.java
 │       │                       │           ├── GetSecureItemUseCaseTest.java
+│       │                       │           ├── ListSecureItemChangesUseCaseTest.java
 │       │                       │           ├── ListSecureItemsUseCaseTest.java
+│       │                       │           ├── SecureItemMutationHasherTest.java
 │       │                       │           └── UpdateSecureItemUseCaseTest.java
 │       │                       ├── domain/
 │       │                       │   └── model/
