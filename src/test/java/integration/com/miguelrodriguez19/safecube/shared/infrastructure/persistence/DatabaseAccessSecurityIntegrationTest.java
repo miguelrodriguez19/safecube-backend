@@ -4,15 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import integration.annotation.IntegrationTest;
+import integration.annotation.support.PostgresSQLInitializer;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.sql.DataSource;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 @IntegrationTest(profiles = {"jpa"})
 class DatabaseAccessSecurityIntegrationTest {
@@ -37,14 +40,27 @@ class DatabaseAccessSecurityIntegrationTest {
           Map.entry("vault_item_mutations", Set.of("SELECT", "INSERT")),
           Map.entry("vault_key_material", Set.of("SELECT", "INSERT", "UPDATE")));
 
-  @Autowired private DataSource dataSource;
+  @Value("${safecube.test.admin-datasource.url}")
+  private String adminUrl;
 
-  @Autowired private JdbcTemplate jdbcTemplate;
+  @Value("${safecube.test.admin-datasource.username}")
+  private String adminUsername;
+
+  @Value("${safecube.test.admin-datasource.password}")
+  private String adminPassword;
+
+  private JdbcTemplate adminJdbcTemplate;
+
+  @BeforeEach
+  void configureAdminJdbcTemplate() {
+    final var dataSource = new DriverManagerDataSource(adminUrl, adminUsername, adminPassword);
+    adminJdbcTemplate = new JdbcTemplate(dataSource);
+  }
 
   @Test
   void shouldEnableRls_givenApplicationTables() {
     final var tableNames =
-        jdbcTemplate.queryForList(
+        adminJdbcTemplate.queryForList(
             """
             select tablename
               from pg_tables
@@ -56,7 +72,7 @@ class DatabaseAccessSecurityIntegrationTest {
             String.class);
 
     final var tablesWithoutRls =
-        jdbcTemplate.queryForList(
+        adminJdbcTemplate.queryForList(
             """
             select tablename
               from pg_tables
@@ -122,7 +138,7 @@ class DatabaseAccessSecurityIntegrationTest {
   @Test
   void shouldConfigureApplicationRoleWithBypassRlsWithoutOwnership() {
     final var role =
-        jdbcTemplate.queryForMap(
+        adminJdbcTemplate.queryForMap(
             """
             select rolcanlogin, rolsuper, rolcreatedb, rolcreaterole,
                    rolreplication, rolbypassrls
@@ -131,7 +147,7 @@ class DatabaseAccessSecurityIntegrationTest {
             """);
 
     final var owners =
-        jdbcTemplate.queryForList(
+        adminJdbcTemplate.queryForList(
             """
             select tableowner
               from pg_tables
@@ -152,6 +168,39 @@ class DatabaseAccessSecurityIntegrationTest {
     assertThat(owners).doesNotContain("safecube_app");
   }
 
+  @Test
+  void shouldKeepMigrationHistoryAndBeIdempotent() {
+    final var result = PostgresSQLInitializer.flyway().migrate();
+    final var appliedMigrations =
+        adminJdbcTemplate.queryForObject(
+            "select count(*) from safecube_meta.flyway_schema_history where success",
+            Integer.class);
+
+    assertThat(result.migrationsExecuted).isZero();
+    assertThat(appliedMigrations).isEqualTo(2);
+  }
+
+  @Test
+  void shouldRejectDdl_givenSafeCubeApplicationRole() {
+    executeAsRole(
+        "safecube_app",
+        connection ->
+            assertThatThrownBy(
+                    () -> executeSql(connection, "CREATE TABLE public.application_probe (id INT)"))
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("permission denied"));
+  }
+
+  @Test
+  void shouldAllowDdl_givenSafeCubeMigratorRole() {
+    executeAsRole(
+        "safecube_migrator",
+        connection -> {
+          executeSql(connection, "CREATE TABLE public.migrator_probe (id INT)");
+          executeSql(connection, "DROP TABLE public.migrator_probe");
+        });
+  }
+
   private void assertTableAccessDenied(final String role) {
     executeAsRole(
         role,
@@ -165,7 +214,8 @@ class DatabaseAccessSecurityIntegrationTest {
   }
 
   private void executeAsRole(final String role, final ConnectionOperation operation) {
-    try (final var connection = dataSource.getConnection()) {
+    try (final var connection =
+        DriverManager.getConnection(adminUrl, adminUsername, adminPassword)) {
       try {
         setRole(connection, role);
         operation.execute(connection);
@@ -197,6 +247,12 @@ class DatabaseAccessSecurityIntegrationTest {
       while (resultSet.next()) {
         // Consume the result so the statement can close cleanly.
       }
+    }
+  }
+
+  private void executeSql(final Connection connection, final String sql) throws SQLException {
+    try (final var statement = connection.createStatement()) {
+      statement.execute(sql);
     }
   }
 
