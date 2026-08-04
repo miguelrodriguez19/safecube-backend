@@ -56,3 +56,21 @@ Feature: Get vault key material
     Given path '/vault/keys'
     When method get
     Then status 401
+
+
+  Scenario: User cannot obtain another account vault key material
+    * def password = 'password123'
+
+    * def credentialsA = { email: '#(utilsJs.randomEmail("vault_key_security_A"))', password: '#(password)' }
+    * def authA = call read(createUserHelper) credentialsA
+    * def tokenA = authA.accessToken
+    * call read(initVaultKeyMaterialHelper) { accessToken: '#(tokenA)' }
+
+    * def credentialsB = { email: '#(utilsJs.randomEmail("vault_key_security_B"))', password: '#(password)' }
+    * def authB = call read(createUserHelper) credentialsB
+    * def tokenB = authB.accessToken
+
+    Given path '/vault/keys'
+    And headers utilsJs.bearer(tokenB)
+    When method get
+    Then status 404
