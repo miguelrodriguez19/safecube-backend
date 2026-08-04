@@ -1,6 +1,8 @@
--- SafeCube Supabase hardening.
--- Execute after init-schema.sql with an administrative role.
--- The application password is provisioned separately and is never stored here.
+-- SafeCube database roles bootstrap.
+--
+-- Execute once with a Supabase administrative role before running Flyway.
+-- Passwords are intentionally not stored in this file. Provision them through
+-- the secret manager or the local orchestration environment.
 
 DO $$
 BEGIN
@@ -20,6 +22,24 @@ BEGIN
 END
 $$;
 
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_roles
+        WHERE rolname = 'safecube_migrator'
+    ) THEN
+        CREATE ROLE safecube_migrator
+            LOGIN
+            NOSUPERUSER
+            NOCREATEDB
+            NOCREATEROLE
+            NOREPLICATION
+            NOBYPASSRLS;
+    END IF;
+END
+$$;
+
 ALTER ROLE safecube_app
     LOGIN
     NOSUPERUSER
@@ -29,74 +49,34 @@ ALTER ROLE safecube_app
     BYPASSRLS;
 
 ALTER ROLE safecube_app SET search_path = public;
+ALTER ROLE safecube_migrator
+    LOGIN
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    NOREPLICATION
+    NOBYPASSRLS;
+ALTER ROLE safecube_migrator SET search_path = safecube_meta, public;
 
-REVOKE ALL PRIVILEGES ON TABLE public.auth_accounts
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.auth_accounts FROM PUBLIC;
+CREATE SCHEMA IF NOT EXISTS safecube_meta AUTHORIZATION safecube_migrator;
+ALTER SCHEMA safecube_meta OWNER TO safecube_migrator;
 
-REVOKE ALL PRIVILEGES ON TABLE public.auth_refresh_tokens
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.auth_refresh_tokens FROM PUBLIC;
+REVOKE ALL PRIVILEGES ON SCHEMA safecube_meta FROM PUBLIC;
+GRANT USAGE, CREATE ON SCHEMA safecube_meta TO safecube_migrator;
 
-REVOKE ALL PRIVILEGES ON TABLE public.user_profiles
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.user_profiles FROM PUBLIC;
-
-REVOKE ALL PRIVILEGES ON TABLE public.vault_item_change_cursors
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.vault_item_change_cursors FROM PUBLIC;
-
-REVOKE ALL PRIVILEGES ON TABLE public.vault_items
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.vault_items FROM PUBLIC;
-
-REVOKE ALL PRIVILEGES ON TABLE public.vault_item_mutations
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.vault_item_mutations FROM PUBLIC;
-
-REVOKE ALL PRIVILEGES ON TABLE public.vault_key_material
-    FROM anon, authenticated, service_role;
-REVOKE ALL PRIVILEGES ON TABLE public.vault_key_material FROM PUBLIC;
-
--- The script must run as the role that creates the public tables. This is
--- postgres in Supabase and the Testcontainers database user in integration tests.
-DO $$
-BEGIN
-    EXECUTE format(
-        'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated, service_role',
-        current_user
-    );
-END
-$$;
-
+-- Flyway creates SafeCube tables as safecube_migrator. The application role
+-- receives object privileges only from versioned migrations and never gets
+-- CREATE on the public schema.
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM PUBLIC;
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM safecube_app;
 GRANT USAGE ON SCHEMA public TO safecube_app;
+GRANT USAGE, CREATE ON SCHEMA public TO safecube_migrator;
 
--- Permissions are derived from the repository operations. Physical DELETE,
--- TRUNCATE, REFERENCES and TRIGGER are intentionally not granted.
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.auth_accounts
-    TO safecube_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE safecube_migrator IN SCHEMA public
+    REVOKE ALL ON TABLES FROM PUBLIC;
+ALTER DEFAULT PRIVILEGES FOR ROLE safecube_migrator IN SCHEMA safecube_meta
+    REVOKE ALL ON TABLES FROM PUBLIC;
 
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.auth_refresh_tokens
-    TO safecube_app;
-
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.user_profiles
-    TO safecube_app;
-
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.vault_item_change_cursors
-    TO safecube_app;
-
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.vault_items
-    TO safecube_app;
-
-GRANT SELECT, INSERT
-    ON TABLE public.vault_item_mutations
-    TO safecube_app;
-
-GRANT SELECT, INSERT, UPDATE
-    ON TABLE public.vault_key_material
-    TO safecube_app;
+-- No passwords belong in source control. Set them outside this script, e.g.:
+-- ALTER ROLE safecube_app WITH PASSWORD '<secret-from-secret-manager>';
+-- ALTER ROLE safecube_migrator WITH PASSWORD '<secret-from-secret-manager>';
