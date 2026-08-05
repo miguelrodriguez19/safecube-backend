@@ -10,10 +10,10 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    name: ${DB_DATABASE:safecube}
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PWD}
+    name: ${DATABASE_NAME:safecube}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME:safecube_app}
+    password: ${DATABASE_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -23,6 +23,8 @@ spring:
 
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         jdbc:

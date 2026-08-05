@@ -14,10 +14,10 @@ services:
     environment:
       SERVER_PORT: 8080
 
-      DB_USER: safecube-user
-      DB_PWD: Safecube1234
-      DB_URL: jdbc:postgresql://postgres:5432/safecube
-      DB_DATABASE: safecube
+      DATABASE_USERNAME: safecube_app
+      DATABASE_PASSWORD: SafecubeApp1234
+      DATABASE_URL: jdbc:postgresql://postgres:5432/safecube
+      DATABASE_NAME: safecube
 
       JWT_SECRET: bEyD5M118jJHGUsCVEup8ZpSuOhQizha41ej8M3sqfvio
       REFRESH_TOKEN_SECRET: OaUjW2Gec0ouSWDjvwrt3gMtoAeavYsRE5Y2K1ij7Ivtc
@@ -29,7 +29,8 @@ services:
       retries: 10
       start_period: 3s
     depends_on:
-      - postgres
+      flyway:
+        condition: service_completed_successfully
     networks:
       - safecube-net
 
@@ -42,8 +43,65 @@ services:
       POSTGRES_DB: safecube
       POSTGRES_USER: safecube-user
       POSTGRES_PASSWORD: Safecube1234
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 1s
+      timeout: 2s
+      retries: 30
     volumes:
       - safecube-postgres-data:/var/lib/postgresql/data
-      - ./docker/postgres/init-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - safecube-net
+
+  database-bootstrap:
+    image: postgres:17-alpine
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: safecube-user
+      PGPASSWORD: Safecube1234
+      PGDATABASE: safecube
+      SAFECUBE_APP_PASSWORD: SafecubeApp1234
+      SAFECUBE_MIGRATOR_PASSWORD: SafecubeMigrator1234
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        until pg_isready; do sleep 1; done
+        psql -v ON_ERROR_STOP=1 -f /bootstrap/supabase-security.sql
+        psql -v ON_ERROR_STOP=1 \
+          -c "ALTER ROLE safecube_app PASSWORD '$${SAFECUBE_APP_PASSWORD}'; ALTER ROLE safecube_migrator PASSWORD '$${SAFECUBE_MIGRATOR_PASSWORD}';"
+    volumes:
+      - ./docker/postgres/supabase-security.sql:/bootstrap/supabase-security.sql:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - safecube-net
+
+  flyway:
+    image: flyway/flyway:13.1.0
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/safecube
+      FLYWAY_USER: safecube_migrator
+      FLYWAY_PASSWORD: SafecubeMigrator1234
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_SCHEMAS: safecube_meta,public
+      FLYWAY_DEFAULT_SCHEMA: safecube_meta
+      FLYWAY_TABLE: flyway_schema_history
+      FLYWAY_CLEAN_DISABLED: "true"
+      FLYWAY_BASELINE_ON_MIGRATE: "false"
+      FLYWAY_OUT_OF_ORDER: "false"
+      FLYWAY_IGNORE_MIGRATION_PATTERNS: "*:pending"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        flyway info
+        flyway validate
+        flyway migrate
+    volumes:
+      - ./db/migrations:/flyway/sql:ro
+    depends_on:
+      database-bootstrap:
+        condition: service_completed_successfully
     networks:
       - safecube-net

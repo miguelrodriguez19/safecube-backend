@@ -101,12 +101,78 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
 
 
-  ############### 4. Deploy to Production (manual approval) ###############
+  ############### 4. Migrate Production Database (manual approval) ###############
+  migrate-production:
+    name: 'Migrate Production Database (Flyway)'
+    needs:
+      - build-container-image
+      - create-release-tag
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: safecube-production-database
+      cancel-in-progress: false
+    permissions:
+      contents: read
+
+    env:
+      FLYWAY_URL: ${{ secrets.SUPABASE_MIGRATOR_JDBC_URL }}
+      FLYWAY_USER: ${{ secrets.SUPABASE_MIGRATOR_USERNAME }}
+      FLYWAY_PASSWORD: ${{ secrets.SUPABASE_MIGRATOR_PASSWORD }}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_SCHEMAS: safecube_meta,public
+      FLYWAY_DEFAULT_SCHEMA: safecube_meta
+      FLYWAY_TABLE: flyway_schema_history
+      FLYWAY_CLEAN_DISABLED: 'true'
+      FLYWAY_BASELINE_ON_MIGRATE: 'false'
+      FLYWAY_OUT_OF_ORDER: 'false'
+      FLYWAY_IGNORE_MIGRATION_PATTERNS: '*:pending'
+
+    steps:
+      - name: Checkout migration scripts
+        uses: actions/checkout@v4
+
+      - name: Flyway info
+        run: |
+          docker run --rm --pull=always \
+            -v "$GITHUB_WORKSPACE/db/migrations:/flyway/sql:ro" \
+            -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD \
+            -e FLYWAY_LOCATIONS -e FLYWAY_SCHEMAS -e FLYWAY_DEFAULT_SCHEMA \
+            -e FLYWAY_TABLE -e FLYWAY_CLEAN_DISABLED \
+            -e FLYWAY_BASELINE_ON_MIGRATE -e FLYWAY_OUT_OF_ORDER \
+            -e FLYWAY_IGNORE_MIGRATION_PATTERNS \
+            flyway/flyway:13.1.0 info
+
+      - name: Flyway validate
+        run: |
+          docker run --rm --pull=always \
+            -v "$GITHUB_WORKSPACE/db/migrations:/flyway/sql:ro" \
+            -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD \
+            -e FLYWAY_LOCATIONS -e FLYWAY_SCHEMAS -e FLYWAY_DEFAULT_SCHEMA \
+            -e FLYWAY_TABLE -e FLYWAY_CLEAN_DISABLED \
+            -e FLYWAY_BASELINE_ON_MIGRATE -e FLYWAY_OUT_OF_ORDER \
+            -e FLYWAY_IGNORE_MIGRATION_PATTERNS \
+            flyway/flyway:13.1.0 validate
+
+      - name: Flyway migrate
+        run: |
+          docker run --rm --pull=always \
+            -v "$GITHUB_WORKSPACE/db/migrations:/flyway/sql:ro" \
+            -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD \
+            -e FLYWAY_LOCATIONS -e FLYWAY_SCHEMAS -e FLYWAY_DEFAULT_SCHEMA \
+            -e FLYWAY_TABLE -e FLYWAY_CLEAN_DISABLED \
+            -e FLYWAY_BASELINE_ON_MIGRATE -e FLYWAY_OUT_OF_ORDER \
+            -e FLYWAY_IGNORE_MIGRATION_PATTERNS \
+            flyway/flyway:13.1.0 migrate
+
+
+  ############### 5. Deploy to Production (manual approval) ###############
   deploy-production:
     name: 'Deploy Production (Koyeb)'
     needs:
       - build-container-image
       - create-release-tag
+      - migrate-production
     runs-on: ubuntu-latest
     environment: production
 
@@ -124,7 +190,7 @@ jobs:
           --deployment-strategy immediate
 
 
-  ############### 5. Create GitHub Release (after successful deploy) ###############
+  ############### 6. Create GitHub Release (after successful deploy) ###############
   create-github-release:
     name: 'Release - Create GitHub Release'
     needs:

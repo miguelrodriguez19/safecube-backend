@@ -9,7 +9,7 @@ responsabilidades por slice y el esquema actual soportado.
 
 La base de datos de SafeCube sigue los siguientes principios:
 
-* **Single Source of Truth**: el esquema SQL es la referencia definitiva del modelo persistente.
+* **Single Source of Truth**: las migraciones versionadas de `db/migrations` son la referencia definitiva del modelo persistente.
 * **Explicit lifecycle**: los estados relevantes (enabled, revoked, expired, disabled) se representan explícitamente
   mediante columnas.
 * **No implicit deletes**: no se utilizan borrados lógicos implícitos salvo decisión explícita documentada.
@@ -22,19 +22,24 @@ La base de datos de SafeCube sigue los siguientes principios:
 ### 2.1 Local Development
 
 * Base de datos PostgreSQL levantada vía **docker-compose**.
-* Inicialización mediante `docker/postgres/init-schema.sql`.
+* PostgreSQL se inicia vacío; el bootstrap administrativo crea los roles y el
+  contenedor Flyway aplica todas las migraciones versionadas.
 
 ### 2.2 Tests (Integration / Acceptance)
 
 * Uso de **Testcontainers**.
-* El esquema se copia automáticamente durante el build y se monta como script de inicialización.
-* No existen migraciones dinámicas en tests.
+* PostgreSQL se inicia vacío, se ejecuta el bootstrap de roles y Flyway aplica
+  las mismas migraciones que se utilizan en local y producción.
+* Spring Boot usa `safecube_app`; las comprobaciones de roles, RLS y privilegios
+  utilizan una conexión administrativa separada.
 
 ### 2.3 Producción
 
 * La base de datos se gestiona de forma **manual/administrada**.
-* Alojada en un servidor web dedicado.
-* No se ejecutan scripts automáticos desde la aplicación.
+* GitHub Actions ejecuta `info`, `validate` y `migrate` con el contenedor
+  oficial fijado `flyway/flyway:13.1.0`, protegido por el entorno `production`.
+* La migración termina antes del despliegue de Koyeb y nunca se ejecuta desde
+  Spring Boot ni desde el JAR productivo.
 
 ---
 
@@ -105,10 +110,10 @@ Responsabilidad:
 
 ---
 
-### 3.4 vault_secure_items
+### 3.4 vault_items
 
 ```sql
-CREATE TABLE IF NOT EXISTS vault_secure_items (
+CREATE TABLE IF NOT EXISTS vault_items (
     item_id UUID PRIMARY KEY, 
     account_id UUID NOT NULL, 
     item_type VARCHAR (50) NOT NULL, 
@@ -121,9 +126,9 @@ CREATE TABLE IF NOT EXISTS vault_secure_items (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-   CREATE INDEX IF NOT EXISTS idx_vault_items_account_id ON vault_secure_items (account_id);
-   CREATE INDEX IF NOT EXISTS idx_vault_items_updated_at ON vault_secure_items (updated_at);
-   CREATE INDEX IF NOT EXISTS idx_vault_items_deleted_at ON vault_secure_items (deleted_at);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_account_id ON vault_items (account_id);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_updated_at ON vault_items (updated_at);
+   CREATE INDEX IF NOT EXISTS idx_vault_items_deleted_at ON vault_items (deleted_at);
 ```
 
 Responsabilidad:
@@ -132,8 +137,6 @@ Responsabilidad:
 - Aislamiento estricto por account_id.
 - Soporte de sincronización mediante timestamps.
 - Implementa borrado lógico explícito (deleted_at).
-
-💡 Nota: aunque internamente uses otro nombre de tabla, el **concepto debe existir** en el doc.
 
 ---
 
@@ -171,11 +174,11 @@ Responsabilidad:
 
 * auth_accounts (1) —— (0..*) auth_refresh_tokens
 * auth_accounts (1) —— (0..1) user_profiles
-* auth_accounts (1) —— (0..*) vault_secure_items
+* auth_accounts (1) —— (0..*) vault_items
 * auth_accounts (1) ── (1) vault_key_material
 
-> La relación entre `auth_accounts` y `vault_secure_items`
-> es **lógica**, no implementada mediante foreign keys físicas en v1.
+> La relación entre `auth_accounts` y `vault_items` se refuerza mediante una
+> foreign key física en el esquema actual.
 
 ---
 
@@ -209,7 +212,7 @@ erDiagram
         TIMESTAMP updated_at
     }
     
-    VAULT_SECURE_ITEMS {
+    VAULT_ITEMS {
         UUID item_id PK
         UUID account_id
         VARCHAR item_type
@@ -222,7 +225,7 @@ erDiagram
         TIMESTAMP deleted_at
     }
     
-    vault_key_material {
+    VAULT_KEY_MATERIAL {
         UUID account_id
         BYTEA kek_enc_master
         BYTEA kek_enc_recovery
@@ -240,8 +243,8 @@ erDiagram
 
     AUTH_ACCOUNTS ||--o{ AUTH_REFRESH_TOKENS : has
     AUTH_ACCOUNTS ||--o| USER_PROFILES : owns
-    AUTH_ACCOUNTS ||--o{ VAULT_SECURE_ITEMS : owns
-    AUTH_ACCOUNTS ||--o| VAULT_SECURE_ITEMS : owns
+    AUTH_ACCOUNTS ||--o{ VAULT_ITEMS : owns
+    AUTH_ACCOUNTS ||--o| VAULT_KEY_MATERIAL : owns
 
 ```
 
@@ -249,19 +252,73 @@ erDiagram
 
 ## 6. Decisiones Explícitas
 
-* No existen `FOREIGN KEY` físicas en v1.
+* Las relaciones de propiedad se refuerzan mediante `FOREIGN KEY` y acciones `ON DELETE` explícitas.
 * No existe `deleted_at` en tablas de identidad (`auth`, `user`).
 * El slice `vault` implementa borrado lógico explícito (`deleted_at`)
   para soportar sincronización entre clientes.
-* No hay migraciones automáticas (Flyway/Liquibase) en v1.
-* El esquema evoluciona mediante decisiones arquitectónicas documentadas (ADR).
+* `db/migrations/V1__initial_schema.sql` crea las siete tablas, sus índices,
+  restricciones y RLS. Es determinista y no utiliza `IF NOT EXISTS`.
+* `db/migrations/V2__configure_database_access.sql` aplica los grants,
+  revocaciones y privilegios por defecto.
+* El esquema evoluciona mediante nuevas migraciones Flyway inmutables y
+  decisiones arquitectónicas documentadas (ADR). Nunca se edita una migración
+  ya aplicada.
 * El slice `vault` utiliza timestamps (`created_at`, `updated_at`, `deleted_at`)
   como mecanismo de sincronización y concurrencia.
 * No se utilizan locks ni versionado optimista JPA.
 
 ---
 
-## 7. Evolución Futura
+## 7. Seguridad de acceso y Supabase
+
+Las siete tablas de SafeCube en el esquema `public` son:
+
+* `auth_accounts`
+* `auth_refresh_tokens`
+* `user_profiles`
+* `vault_item_change_cursors`
+* `vault_items`
+* `vault_item_mutations`
+* `vault_key_material`
+
+Todas tienen RLS habilitada en `db/migrations/V1__initial_schema.sql`. No se crean
+políticas RLS: los roles sujetos a RLS quedan denegados por defecto. SafeCube no
+usa Supabase Auth, `auth.uid()` ni la Data API de Supabase.
+
+El backend utiliza un rol JDBC privado `safecube_app`, que:
+
+* puede iniciar sesión, no es superusuario y no es propietario de las tablas;
+* tiene `BYPASSRLS` porque la autorización funcional se realiza en Spring Boot
+  con el `accountId` del JWT propio;
+* recibe únicamente `USAGE` sobre `public` y `SELECT`, `INSERT` y `UPDATE` según
+  la matriz real de repositorios;
+* no recibe `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER` ni `CREATE`.
+
+El script administrativo `docker/postgres/supabase-security.sql` se ejecuta una
+única vez con una conexión administrativa para crear `safecube_app`,
+`safecube_migrator` y el esquema privado `safecube_meta`. No contiene
+contraseñas. Después, Flyway ejecuta `V2` con `safecube_migrator` y revoca
+explícitamente los privilegios de `anon`, `authenticated`, `service_role` y
+`PUBLIC` sobre las tablas de SafeCube. La contraseña de cada rol se configura
+fuera del repositorio.
+
+Flyway guarda su historial en `safecube_meta.flyway_schema_history` y utiliza
+`baselineOnMigrate=false`, `outOfOrder=false` y `cleanDisabled=true`. Como la
+base de producción está vacía, la primera ejecución aplica `V1`; no se ejecuta
+`baseline`.
+
+En Koyeb la aplicación se configura con `DATABASE_URL`, `DATABASE_USERNAME` y
+`DATABASE_PASSWORD`. La URL JDBC debe incluir `sslmode=require`, debe utilizar
+conexión directa o Supavisor en session mode, y nunca debe usar el usuario
+`postgres`, `SUPABASE_ANON_KEY` ni `SUPABASE_SERVICE_ROLE_KEY`.
+
+Después de reconstruir la base de datos se deben repetir las comprobaciones de
+RLS, privilegios de la Data API, atributos del rol, propietarios de tablas y
+Security Advisor descritas en el runbook operativo.
+
+---
+
+## 8. Evolución Futura
 
 Posibles extensiones futuras:
 

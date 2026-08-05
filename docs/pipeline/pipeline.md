@@ -74,8 +74,14 @@
 │           │       ├── 3. Download executable JAR
 │           │       └── 4. Build & push Docker image (ghcr.io/miguelrodriguez19/safecube-backend:${{ needs.create-release-tag.outputs.version }})
 │           │
+│           ├── migrate-production
+│           │   ├── needs: build-container-image
+│           │   ├── environment: production
+│           │   ├── concurrency: safecube-production-database
+│           │   └── steps: Flyway info, validate and migrate
+│           │
 │           └── deploy-production
-│               ├── needs: build-container-image
+│               ├── needs: migrate-production
 │               ├── environment: production
 │               └── steps: Deploy on Koyeb
 │                   ├── Install Koyeb CLI
@@ -100,7 +106,9 @@
 
 ### Manual Deploy Authorization (Koyeb)
 
-* Deploy job uses **GitHub Environments** with `production`.
+* Migration and deploy jobs use **GitHub Environments** with `production`.
 * Environment protection rules enforce **manual approval** before deployment.
+* The production migration has exclusive concurrency so two Flyway executions
+  cannot overlap.
 * This is a deliberate early-stage control mechanism.
 * Once MVP is delivered, deploy can be fully automated by removing the approval rule.
