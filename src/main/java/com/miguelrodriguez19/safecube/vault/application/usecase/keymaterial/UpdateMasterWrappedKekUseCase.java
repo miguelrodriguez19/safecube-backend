@@ -1,12 +1,14 @@
 package com.miguelrodriguez19.safecube.vault.application.usecase.keymaterial;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
-import com.miguelrodriguez19.safecube.shared.result.Void;
 import com.miguelrodriguez19.safecube.vault.application.dto.keymaterial.UpdateMasterWrappedKekCommand;
+import com.miguelrodriguez19.safecube.vault.application.dto.keymaterial.UpdateMasterWrappedKekResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultKeyMaterialError;
 import com.miguelrodriguez19.safecube.vault.application.port.out.VaultKeyMaterialRepository;
+import com.miguelrodriguez19.safecube.vault.domain.model.keymaterial.VaultKeyMaterial;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * UpdateMasterWrappedKekUseCase
@@ -19,17 +21,28 @@ public class UpdateMasterWrappedKekUseCase {
 
   private final VaultKeyMaterialRepository repository;
 
-  public Result<Void, VaultKeyMaterialError> execute(final UpdateMasterWrappedKekCommand command) {
+  @Transactional
+  public Result<UpdateMasterWrappedKekResult, VaultKeyMaterialError> execute(
+      final UpdateMasterWrappedKekCommand command) {
 
-    final var keyMaterialOpt = repository.findByAccountId(command.accountId());
-    if (keyMaterialOpt.isEmpty()) {
+    if (!repository.existsByAccountId(command.accountId())) {
       return Result.failure(new VaultKeyMaterialError.VaultNotInitialized());
     }
 
-    final var keyMaterial = keyMaterialOpt.get();
-    keyMaterial.rotateMasterWrappedKek(command.newKekEncMaster(), command.updatedAt());
+    VaultKeyMaterial.validateMasterWrappedKek(command.newKekEncMaster());
 
-    repository.update(keyMaterial);
-    return Result.success(Void.INSTANCE);
+    final var updatedRows =
+        repository.updateMasterWrappedKekIfRevisionMatches(
+            command.accountId(),
+            command.newKekEncMaster(),
+            command.expectedMasterKeyRevision(),
+            command.updatedAt());
+
+    if (updatedRows != 1) {
+      return Result.failure(new VaultKeyMaterialError.StaleMasterWrappedKekUpdate());
+    }
+
+    return Result.success(
+        new UpdateMasterWrappedKekResult(command.expectedMasterKeyRevision() + 1));
   }
 }

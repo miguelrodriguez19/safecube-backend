@@ -42,7 +42,8 @@ public class GetVaultKeyMaterialUseCase {
             keyMaterial.getKdfOutputLen(),
             keyMaterial.getCryptoVersion(),
             keyMaterial.getCreatedAt(),
-            keyMaterial.getUpdatedAt());
+            keyMaterial.getUpdatedAt(),
+            keyMaterial.getMasterKeyRevision());
 
     return Result.success(result);
   }

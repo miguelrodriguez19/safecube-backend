@@ -4,14 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
-import com.miguelrodriguez19.safecube.shared.result.Void;
 import com.miguelrodriguez19.safecube.vault.application.dto.keymaterial.UpdateMasterWrappedKekCommand;
+import com.miguelrodriguez19.safecube.vault.application.dto.keymaterial.UpdateMasterWrappedKekResult;
 import com.miguelrodriguez19.safecube.vault.application.error.VaultKeyMaterialError;
 import com.miguelrodriguez19.safecube.vault.application.port.out.VaultKeyMaterialRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.keymaterial.UpdateMasterWrappedKekUseCase;
-import com.miguelrodriguez19.safecube.vault.domain.model.keymaterial.VaultKeyMaterial;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -30,46 +28,55 @@ class UpdateMasterWrappedKekUseCaseTest {
     final var now = Instant.now();
     final var accountId = UUID.randomUUID();
 
-    final var keyMaterial =
-        VaultKeyMaterial.create(
-            accountId,
-            new byte[] {1},
-            new byte[] {2},
-            "ARGON2ID",
-            new byte[] {3},
-            65536,
-            3,
-            1,
-            32,
-            "v1",
-            now.minusSeconds(60));
+    final var command = new UpdateMasterWrappedKekCommand(accountId, new byte[] {9, 9, 9}, 1, now);
 
-    final var command = new UpdateMasterWrappedKekCommand(accountId, new byte[] {9, 9, 9}, now);
-
-    when(repository.findByAccountId(accountId)).thenReturn(Optional.of(keyMaterial));
+    when(repository.existsByAccountId(accountId)).thenReturn(true);
+    when(repository.updateMasterWrappedKekIfRevisionMatches(
+            accountId, command.newKekEncMaster(), command.expectedMasterKeyRevision(), now))
+        .thenReturn(1);
 
     final var result = target.execute(command);
 
-    verify(repository).update(keyMaterial);
+    verify(repository)
+        .updateMasterWrappedKekIfRevisionMatches(
+            accountId, command.newKekEncMaster(), command.expectedMasterKeyRevision(), now);
 
     assertThat(result).isInstanceOf(Result.Success.class);
-    assertThat(result.success().get()).isEqualTo(Void.INSTANCE);
-    assertThat(keyMaterial.getKekEncMaster()).isEqualTo(command.newKekEncMaster());
-    assertThat(keyMaterial.getUpdatedAt()).isEqualTo(command.updatedAt());
+    assertThat(result.success().get())
+        .isEqualTo(new UpdateMasterWrappedKekResult(command.expectedMasterKeyRevision() + 1));
   }
 
   @Test
   void shouldFail_whenVaultIsNotInitialized() {
     final var command =
-        new UpdateMasterWrappedKekCommand(UUID.randomUUID(), new byte[] {9, 9, 9}, Instant.now());
+        new UpdateMasterWrappedKekCommand(
+            UUID.randomUUID(), new byte[] {9, 9, 9}, 1, Instant.now());
 
-    when(repository.findByAccountId(command.accountId())).thenReturn(Optional.empty());
+    when(repository.existsByAccountId(command.accountId())).thenReturn(false);
 
     final var result = target.execute(command);
 
-    verify(repository, never()).update(any());
+    verify(repository, never())
+        .updateMasterWrappedKekIfRevisionMatches(any(), any(), anyLong(), any());
 
     assertThat(result).isInstanceOf(Result.Failure.class);
     assertThat(result.error()).containsInstanceOf(VaultKeyMaterialError.VaultNotInitialized.class);
+  }
+
+  @Test
+  void shouldFail_whenRevisionIsStale() {
+    final var now = Instant.now();
+    final var accountId = UUID.randomUUID();
+    final var command = new UpdateMasterWrappedKekCommand(accountId, new byte[] {9, 9, 9}, 1, now);
+
+    when(repository.existsByAccountId(accountId)).thenReturn(true);
+    when(repository.updateMasterWrappedKekIfRevisionMatches(
+            accountId, command.newKekEncMaster(), command.expectedMasterKeyRevision(), now))
+        .thenReturn(0);
+
+    final var result = target.execute(command);
+
+    assertThat(result.error())
+        .containsInstanceOf(VaultKeyMaterialError.StaleMasterWrappedKekUpdate.class);
   }
 }

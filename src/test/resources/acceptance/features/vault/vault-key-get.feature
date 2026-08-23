@@ -20,6 +20,8 @@ Feature: Get vault key material
     And headers utilsJs.bearer(accessToken)
     When method get
     Then status 200
+    And match responseHeaders['ETag'][0] == '"master-1"'
+    And match responseHeaders['Cache-Control'][0] == 'no-store'
     And match response ==
       """
       {
@@ -56,6 +58,23 @@ Feature: Get vault key material
     Given path '/vault/keys'
     When method get
     Then status 401
+
+
+  Scenario: Generated OpenAPI declares master key preconditions
+    Given path '/v3/api-docs'
+    When method get
+    Then status 200
+    * def getOperation = response.paths['/vault/keys'].get
+    * def updateOperation = response.paths['/vault/keys/master'].put
+    And match getOperation.responses['200'].headers.ETag.required == true
+    And match getOperation.responses['200'].headers['Cache-Control'].required == true
+    And match updateOperation.responses['200'].headers.ETag.required == true
+    And match updateOperation.responses['200'].headers['Cache-Control'].required == true
+    And match updateOperation.responses['412'] == '#notnull'
+    And match updateOperation.responses['428'] == '#notnull'
+    And match updateOperation.parameters[0].name == 'If-Match'
+    And match updateOperation.parameters[0].in == 'header'
+    And match updateOperation.parameters[0].required == true
 
 
   Scenario: User cannot obtain another account vault key material

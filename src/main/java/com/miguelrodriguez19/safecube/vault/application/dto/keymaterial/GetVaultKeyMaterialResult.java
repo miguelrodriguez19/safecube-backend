@@ -15,4 +15,5 @@ public record GetVaultKeyMaterialResult(
     int kdfOutputLen,
     String cryptoVersion,
     Instant createdAt,
-    Instant updatedAt) {}
+    Instant updatedAt,
+    long masterKeyRevision) {}
