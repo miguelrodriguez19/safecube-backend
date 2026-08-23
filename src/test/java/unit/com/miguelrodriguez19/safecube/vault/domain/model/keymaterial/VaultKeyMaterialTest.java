@@ -101,6 +101,30 @@ class VaultKeyMaterialTest {
         .hasMessageContaining("kekEncMaster");
   }
 
+  @Test
+  void shouldRejectRestore_whenMasterKeyRevisionIsZero() {
+    final var now = Instant.now();
+
+    assertThatThrownBy(
+            () ->
+                VaultKeyMaterial.restore(
+                    UUID.randomUUID(),
+                    new byte[] {1},
+                    new byte[] {1},
+                    "ARGON2ID",
+                    new byte[] {1},
+                    65536,
+                    3,
+                    1,
+                    32,
+                    "v1",
+                    now,
+                    now,
+                    0L))
+        .isInstanceOf(InvalidVaultKeyMaterialException.class)
+        .hasMessageContaining("masterKeyRevision");
+  }
+
   private static Stream<Arguments> invalidKdfParametersCombinations() {
     return Stream.of(
         Arguments.of(0, 3, 1, 32),

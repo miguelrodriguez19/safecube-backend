@@ -1,6 +1,7 @@
 package unit.com.miguelrodriguez19.safecube.vault.application.usecase.keymaterial;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import com.miguelrodriguez19.safecube.shared.result.Result;
@@ -9,6 +10,7 @@ import com.miguelrodriguez19.safecube.vault.application.dto.keymaterial.UpdateMa
 import com.miguelrodriguez19.safecube.vault.application.error.VaultKeyMaterialError;
 import com.miguelrodriguez19.safecube.vault.application.port.out.VaultKeyMaterialRepository;
 import com.miguelrodriguez19.safecube.vault.application.usecase.keymaterial.UpdateMasterWrappedKekUseCase;
+import com.miguelrodriguez19.safecube.vault.domain.exception.InvalidWrappedKekException;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -78,5 +80,20 @@ class UpdateMasterWrappedKekUseCaseTest {
 
     assertThat(result.error())
         .containsInstanceOf(VaultKeyMaterialError.StaleMasterWrappedKekUpdate.class);
+  }
+
+  @Test
+  void shouldRejectEmptyMasterWrappedKek_beforeCas() {
+    final var command =
+        new UpdateMasterWrappedKekCommand(UUID.randomUUID(), new byte[0], 1, Instant.now());
+
+    when(repository.existsByAccountId(command.accountId())).thenReturn(true);
+
+    assertThatThrownBy(() -> target.execute(command))
+        .isInstanceOf(InvalidWrappedKekException.class)
+        .hasMessageContaining("kekEncMaster");
+
+    verify(repository, never())
+        .updateMasterWrappedKekIfRevisionMatches(any(), any(), anyLong(), any());
   }
 }
