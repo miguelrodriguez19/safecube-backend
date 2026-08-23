@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.vault.domain.model.keymaterial.VaultKeyMat
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaVaultKeyMaterialRepositoryAdapter;
 import integration.annotation.IntegrationTest;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -26,7 +27,7 @@ class JpaVaultKeyMaterialRepositoryAdapterIntegrationTest {
 
   @Test
   void shouldPersistAndLoadVaultKeyMaterial() {
-    final var now = Instant.now();
+    final var now = instantNow();
     final var accountId = insertAuthAccount();
 
     final var material =
@@ -68,7 +69,7 @@ class JpaVaultKeyMaterialRepositoryAdapterIntegrationTest {
 
   @Test
   void shouldUpdateVaultKeyMaterial_whenExistingRecord() {
-    final var now = Instant.now();
+    final var now = instantNow();
     final var accountId = insertAuthAccount();
 
     final var initial =
@@ -113,7 +114,7 @@ class JpaVaultKeyMaterialRepositoryAdapterIntegrationTest {
 
   @Test
   void shouldUpdateOnlyMasterWrappedKekAndRevision_whenRevisionMatches() {
-    final var now = Instant.now();
+    final var now = instantNow();
     final var accountId = insertAuthAccount();
 
     final var initial =
@@ -164,7 +165,7 @@ class JpaVaultKeyMaterialRepositoryAdapterIntegrationTest {
 
   @Test
   void shouldAllowExactlyOneConcurrentCas_whenBothUseSameRevision() throws Exception {
-    final var now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+    final var now = instantNow();
     final var accountId = insertAuthAccount();
     target.save(
         VaultKeyMaterial.create(
@@ -213,12 +214,16 @@ class JpaVaultKeyMaterialRepositoryAdapterIntegrationTest {
   private UUID insertAuthAccount() {
     final var accountId = UUID.randomUUID();
     final var email = "%s@safecube.io".formatted(accountId);
-    final var now = Instant.now();
+    final var now = instantNow();
 
     final var authAccountJpaEntity =
         new AuthAccountJpaEntity(accountId, email, "password", true, now, null);
     authAccountJpaRepository.save(authAccountJpaEntity);
 
     return accountId;
+  }
+
+  private Instant instantNow() {
+    return Instant.now().truncatedTo(ChronoUnit.MICROS);
   }
 }
