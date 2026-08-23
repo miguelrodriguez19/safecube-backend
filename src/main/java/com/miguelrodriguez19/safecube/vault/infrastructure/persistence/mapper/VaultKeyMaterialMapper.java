@@ -21,7 +21,8 @@ public class VaultKeyMaterialMapper {
         domain.getKdfOutputLen(),
         domain.getCryptoVersion(),
         domain.getCreatedAt(),
-        domain.getUpdatedAt());
+        domain.getUpdatedAt(),
+        domain.getMasterKeyRevision());
   }
 
   public VaultKeyMaterial toDomain(final VaultKeyMaterialJpaEntity entity) {
@@ -37,6 +38,7 @@ public class VaultKeyMaterialMapper {
         entity.getKdfOutputLen(),
         entity.getCryptoVersion(),
         entity.getCreatedAt(),
-        entity.getUpdatedAt());
+        entity.getUpdatedAt(),
+        entity.getMasterKeyRevision());
   }
 }

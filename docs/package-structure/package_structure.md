@@ -1,5 +1,5 @@
 # Package Structure
-Updated: 04-08-2026 08:33:38
+Updated: 24-08-2026 12:33:12
 
 ```
 safecube-backend/
@@ -22,7 +22,8 @@ safecube-backend/
 ├── db/
 │   └── migrations/
 │       ├── V1__initial_schema.sql
-│       └── V2__configure_database_access.sql
+│       ├── V2__configure_database_access.sql
+│       └── V3__add_master_key_revision.sql
 ├── docker/
 │   └── postgres/
 │       └── supabase-security.sql
@@ -187,7 +188,8 @@ safecube-backend/
 │   │   │               │   │   │   │   ├── GetVaultKeyMaterialQuery.java
 │   │   │               │   │   │   │   ├── GetVaultKeyMaterialResult.java
 │   │   │               │   │   │   │   ├── InitVaultKeyMaterialCommand.java
-│   │   │               │   │   │   │   └── UpdateMasterWrappedKekCommand.java
+│   │   │               │   │   │   │   ├── UpdateMasterWrappedKekCommand.java
+│   │   │               │   │   │   │   └── UpdateMasterWrappedKekResult.java
 │   │   │               │   │   │   └── secureitem/
 │   │   │               │   │   │       ├── command/
 │   │   │               │   │   │       │   ├── CreateSecureItemCommand.java
@@ -286,9 +288,6 @@ safecube-backend/
 │   │   │               │           └── VaultKeyMaterialController.java
 │   │   │               └── SafeCubeBackendApplication.java
 │   │   └── resources/
-│   │       ├── database/
-│   │       ├── static/
-│   │       ├── templates/
 │   │       └── application.yaml
 │   └── test/
 │       ├── java/
@@ -424,9 +423,10 @@ safecube-backend/
 │       │                           └── web/
 │       │                               ├── mapper/
 │       │                               │   └── ListSecureItemsFilterMapperTest.java
-│       │                               └── validation/
-│       │                                   ├── ItemTypeValidatorTest.java
-│       │                                   └── OrderValidatorTest.java
+│       │                               ├── validation/
+│       │                               │   ├── ItemTypeValidatorTest.java
+│       │                               │   └── OrderValidatorTest.java
+│       │                               └── VaultKeyMaterialControllerTest.java
 │       └── resources/
 │           ├── acceptance/
 │           │   ├── features/

@@ -177,7 +177,7 @@ class DatabaseAccessSecurityIntegrationTest {
             Integer.class);
 
     assertThat(result.migrationsExecuted).isZero();
-    assertThat(appliedMigrations).isEqualTo(2);
+    assertThat(appliedMigrations).isEqualTo(3);
   }
 
   @Test

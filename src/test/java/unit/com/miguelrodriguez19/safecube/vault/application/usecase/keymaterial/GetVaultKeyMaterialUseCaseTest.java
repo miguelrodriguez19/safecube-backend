@@ -48,7 +48,8 @@ class GetVaultKeyMaterialUseCaseTest {
             GetVaultKeyMaterialResult::kdfOutputLen,
             GetVaultKeyMaterialResult::cryptoVersion,
             GetVaultKeyMaterialResult::createdAt,
-            GetVaultKeyMaterialResult::updatedAt)
+            GetVaultKeyMaterialResult::updatedAt,
+            GetVaultKeyMaterialResult::masterKeyRevision)
         .containsExactly(
             vaultKeyMaterial.getAccountId(),
             vaultKeyMaterial.getKekEncMaster(),
@@ -61,7 +62,8 @@ class GetVaultKeyMaterialUseCaseTest {
             vaultKeyMaterial.getKdfOutputLen(),
             vaultKeyMaterial.getCryptoVersion(),
             vaultKeyMaterial.getCreatedAt(),
-            vaultKeyMaterial.getUpdatedAt());
+            vaultKeyMaterial.getUpdatedAt(),
+            vaultKeyMaterial.getMasterKeyRevision());
   }
 
   @Test

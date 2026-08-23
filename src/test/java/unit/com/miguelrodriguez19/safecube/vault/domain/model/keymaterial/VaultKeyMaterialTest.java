@@ -61,7 +61,8 @@ class VaultKeyMaterialTest {
             VaultKeyMaterial::getKdfOutputLen,
             VaultKeyMaterial::getCryptoVersion,
             VaultKeyMaterial::getCreatedAt,
-            VaultKeyMaterial::getUpdatedAt)
+            VaultKeyMaterial::getUpdatedAt,
+            VaultKeyMaterial::getMasterKeyRevision)
         .containsExactly(
             accountId,
             kekEncMaster,
@@ -74,7 +75,8 @@ class VaultKeyMaterialTest {
             kdfOutputLen,
             cryptoVersion,
             now,
-            now);
+            now,
+            1L);
   }
 
   @Test
@@ -97,6 +99,30 @@ class VaultKeyMaterialTest {
                     now))
         .isInstanceOf(InvalidWrappedKekException.class)
         .hasMessageContaining("kekEncMaster");
+  }
+
+  @Test
+  void shouldRejectRestore_whenMasterKeyRevisionIsZero() {
+    final var now = Instant.now();
+
+    assertThatThrownBy(
+            () ->
+                VaultKeyMaterial.restore(
+                    UUID.randomUUID(),
+                    new byte[] {1},
+                    new byte[] {1},
+                    "ARGON2ID",
+                    new byte[] {1},
+                    65536,
+                    3,
+                    1,
+                    32,
+                    "v1",
+                    now,
+                    now,
+                    0L))
+        .isInstanceOf(InvalidVaultKeyMaterialException.class)
+        .hasMessageContaining("masterKeyRevision");
   }
 
   private static Stream<Arguments> invalidKdfParametersCombinations() {

@@ -112,6 +112,7 @@ Propiedades:
 * `cryptoVersion` (String)       // ej. `v1`
 * `createdAt` (Instant)
 * `updatedAt` (Instant)
+* `masterKeyRevision` (long)    // revisión server-owned, no se expone en JSON
 
 Restricciones:
 
@@ -229,10 +230,11 @@ El backend **no valida** ni interpreta el AAD.
 
 * El backend no resuelve conflictos criptográficos.
 * El payload cifrado se trata como **unidad atómica**.
-* La concurrencia se gestiona mediante:
-
-    * `updatedAt`
-    * `payloadVersion`
+* La concurrencia de SecureItems se gestiona mediante la revisión del item y su ETag.
+* La rotación de `kekEncMaster` se gestiona mediante `masterKeyRevision` y un
+  `If-Match` fuerte (`"master-{revision}"`). El CAS solo sustituye el blob
+  `kekEncMaster`, incrementa la revisión y actualiza `updatedAt`; el backend no
+  descifra ni interpreta ningún material.
 
 ---
 
@@ -275,4 +277,3 @@ El backend **no valida** ni interpreta el AAD.
 ---
 
 *Este documento define la base criptográfica del vault y evoluciona con extrema cautela.*
-

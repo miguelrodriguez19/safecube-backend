@@ -48,7 +48,8 @@ class VaultKeyMaterialMapperTest {
             VaultKeyMaterialJpaEntity::getKdfOutputLen,
             VaultKeyMaterialJpaEntity::getCryptoVersion,
             VaultKeyMaterialJpaEntity::getCreatedAt,
-            VaultKeyMaterialJpaEntity::getUpdatedAt)
+            VaultKeyMaterialJpaEntity::getUpdatedAt,
+            VaultKeyMaterialJpaEntity::getMasterKeyRevision)
         .containsExactly(
             accountId,
             domain.getKekEncMaster(),
@@ -60,7 +61,8 @@ class VaultKeyMaterialMapperTest {
             32,
             "v1",
             now,
-            now);
+            now,
+            1L);
   }
 
   @Test
@@ -81,7 +83,8 @@ class VaultKeyMaterialMapperTest {
             32,
             "v1",
             now,
-            now);
+            now,
+            7L);
 
     final var domain = target.toDomain(entity);
 
@@ -97,7 +100,8 @@ class VaultKeyMaterialMapperTest {
             VaultKeyMaterial::getKdfOutputLen,
             VaultKeyMaterial::getCryptoVersion,
             VaultKeyMaterial::getCreatedAt,
-            VaultKeyMaterial::getUpdatedAt)
+            VaultKeyMaterial::getUpdatedAt,
+            VaultKeyMaterial::getMasterKeyRevision)
         .containsExactly(
             accountId,
             entity.getKekEncMaster(),
@@ -109,6 +113,7 @@ class VaultKeyMaterialMapperTest {
             32,
             "v1",
             now,
-            now);
+            now,
+            7L);
   }
 }

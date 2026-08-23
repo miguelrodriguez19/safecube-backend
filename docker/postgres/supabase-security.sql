@@ -42,24 +42,19 @@ $$;
 
 ALTER ROLE safecube_app
     LOGIN
-    NOSUPERUSER
     NOCREATEDB
     NOCREATEROLE
-    NOREPLICATION
     BYPASSRLS;
 
 ALTER ROLE safecube_app SET search_path = public;
 ALTER ROLE safecube_migrator
     LOGIN
-    NOSUPERUSER
     NOCREATEDB
     NOCREATEROLE
-    NOREPLICATION
     NOBYPASSRLS;
 ALTER ROLE safecube_migrator SET search_path = safecube_meta, public;
 
-CREATE SCHEMA IF NOT EXISTS safecube_meta AUTHORIZATION safecube_migrator;
-ALTER SCHEMA safecube_meta OWNER TO safecube_migrator;
+CREATE SCHEMA IF NOT EXISTS safecube_meta;
 
 REVOKE ALL PRIVILEGES ON SCHEMA safecube_meta FROM PUBLIC;
 GRANT USAGE, CREATE ON SCHEMA safecube_meta TO safecube_migrator;
@@ -72,10 +67,6 @@ REVOKE ALL PRIVILEGES ON SCHEMA public FROM safecube_app;
 GRANT USAGE ON SCHEMA public TO safecube_app;
 GRANT USAGE, CREATE ON SCHEMA public TO safecube_migrator;
 
-ALTER DEFAULT PRIVILEGES FOR ROLE safecube_migrator IN SCHEMA public
-    REVOKE ALL ON TABLES FROM PUBLIC;
-ALTER DEFAULT PRIVILEGES FOR ROLE safecube_migrator IN SCHEMA safecube_meta
-    REVOKE ALL ON TABLES FROM PUBLIC;
 
 -- No passwords belong in source control. Set them outside this script, e.g.:
 -- ALTER ROLE safecube_app WITH PASSWORD '<secret-from-secret-manager>';

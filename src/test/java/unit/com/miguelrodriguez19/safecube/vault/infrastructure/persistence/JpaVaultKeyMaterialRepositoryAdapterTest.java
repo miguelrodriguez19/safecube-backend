@@ -8,6 +8,7 @@ import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.JpaVaultK
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.VaultKeyMaterialJpaEntity;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.jpa.VaultKeyMaterialJpaRepository;
 import com.miguelrodriguez19.safecube.vault.infrastructure.persistence.mapper.VaultKeyMaterialMapper;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -79,5 +80,35 @@ class JpaVaultKeyMaterialRepositoryAdapterTest {
 
     verify(mapper).toEntity(domain);
     verify(jpaRepository).save(entity);
+  }
+
+  @Test
+  void shouldDelegateVaultExistenceCheck() {
+    final var accountId = UUID.randomUUID();
+
+    when(jpaRepository.existsById(accountId)).thenReturn(true, false);
+
+    assertThat(target.existsByAccountId(accountId)).isTrue();
+    assertThat(target.existsByAccountId(accountId)).isFalse();
+
+    verify(jpaRepository, times(2)).existsById(accountId);
+  }
+
+  @Test
+  void shouldDelegateMasterWrappedKekCasUpdate() {
+    final var accountId = UUID.randomUUID();
+    final var newKekEncMaster = new byte[] {9, 9};
+    final var updatedAt = Instant.now();
+
+    when(jpaRepository.updateMasterWrappedKekIfRevisionMatches(
+            accountId, newKekEncMaster, 1L, updatedAt))
+        .thenReturn(1);
+
+    final var updatedRows =
+        target.updateMasterWrappedKekIfRevisionMatches(accountId, newKekEncMaster, 1L, updatedAt);
+
+    assertThat(updatedRows).isEqualTo(1);
+    verify(jpaRepository)
+        .updateMasterWrappedKekIfRevisionMatches(accountId, newKekEncMaster, 1L, updatedAt);
   }
 }
