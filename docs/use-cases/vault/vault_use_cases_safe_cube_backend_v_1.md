@@ -76,6 +76,7 @@ Propiedades mínimas:
 * `cryptoVersion` (String)
 * `createdAt` (Instant)
 * `updatedAt` (Instant)
+* `masterKeyRevision` (long, server-owned; solo se expone como ETag)
 
 Notas importantes:
 
@@ -201,19 +202,24 @@ Este caso de uso se ejecuta típicamente cuando:
 
     * `accountId` (Identifier)
     * `newKekEncMaster` (byte[])
+    * `expectedMasterKeyRevision` (long, obtenido del ETag `If-Match`)
     * `updatedAt` (Instant)
 
 ---
 
 #### 4.3.3 Output
 
-* Sin payload (HTTP `200 OK`).
+* Sin payload (HTTP `200 OK`), con el nuevo ETag `"master-{revision}"`.
 
 ---
 
 #### 4.3.4 Errores Esperados
 
 * `VaultNotInitialized`
+
+* `StaleMasterWrappedKekUpdate`
+
+    * El ETag es válido, pero la revisión ya no es la actual (`412 Precondition Failed`).
 
 ---
 
@@ -282,11 +288,18 @@ Se incluyen tests E2E para:
 * GET `/vault/keys`
 
     * `200 OK`
+    * Devuelve el ETag fuerte `"master-{masterKeyRevision}"` y `Cache-Control: no-store`.
+    * `masterKeyRevision` no se incluye en el JSON.
     * `404 Not Found`
 * PUT `/vault/keys/master`
 
     * `200 OK`
+    * Requiere exactamente un `If-Match` fuerte.
+    * Devuelve el nuevo ETag y `Cache-Control: no-store`.
     * `404 Not Found`
+    * `400 Bad Request` para un `If-Match` inválido.
+    * `412 Precondition Failed` para un ETag obsoleto.
+    * `428 Precondition Required` si falta `If-Match`.
 
 #### Compatibilidad
 

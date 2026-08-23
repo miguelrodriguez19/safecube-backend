@@ -156,10 +156,13 @@ CREATE TABLE IF NOT EXISTS vault_key_material(
     crypto_version VARCHAR (50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    master_key_revision BIGINT NOT NULL DEFAULT 1,
     CONSTRAINT fk_vault_key_material_account
     FOREIGN KEY (account_id)
     REFERENCES auth_accounts(account_id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+    CONSTRAINT chk_vault_key_material_master_key_revision
+    CHECK (master_key_revision > 0)
 );
 ```
 
@@ -260,12 +263,17 @@ erDiagram
   restricciones y RLS. Es determinista y no utiliza `IF NOT EXISTS`.
 * `db/migrations/V2__configure_database_access.sql` aplica los grants,
   revocaciones y privilegios por defecto.
+* `db/migrations/V3__add_master_key_revision.sql` añade la revisión positiva de
+  `vault_key_material`, inicializada en `1` para filas existentes y nuevas.
 * El esquema evoluciona mediante nuevas migraciones Flyway inmutables y
   decisiones arquitectónicas documentadas (ADR). Nunca se edita una migración
   ya aplicada.
 * El slice `vault` utiliza timestamps (`created_at`, `updated_at`, `deleted_at`)
-  como mecanismo de sincronización y concurrencia.
-* No se utilizan locks ni versionado optimista JPA.
+  para sincronización y revisiones server-owned con ETags para actualizaciones
+  condicionales. `PUT /vault/keys/master` usa `master_key_revision` mediante un
+  CAS transaccional; no depende de comparar `updated_at`.
+* El CAS de `vault_key_material` no usa versionado optimista JPA ni persiste la
+  entidad completa.
 
 ---
 

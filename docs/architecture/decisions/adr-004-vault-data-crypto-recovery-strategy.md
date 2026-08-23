@@ -263,13 +263,17 @@ Cambiar la passphrase **no implica** recifrar los secretos.
 
 ## Decisión 6 — Concurrencia
 
-La concurrencia se controla **exclusivamente** mediante `updatedAt`.
+La actualización de `KEK_ENC_MASTER` se controla mediante una revisión entera
+server-owned (`masterKeyRevision`) expuesta como un ETag fuerte (`"master-{revision}"`).
 
-- El cliente envía `lastKnownUpdatedAt`
-- El backend rechaza updates/deletes si no coincide
-- Errores explícitos:
-  - `StaleUpdateRejected`
-  - `StaleDeleteRejected`
+- `GET /vault/keys` devuelve el ETag actual y `Cache-Control: no-store`; la revisión no forma parte del JSON.
+- `PUT /vault/keys/master` exige exactamente un `If-Match` fuerte generado por ese GET.
+- El backend ejecuta un `UPDATE` atómico condicionado por `account_id` y `master_key_revision`; solo se modifican `kek_enc_master`, `master_key_revision` y `updated_at`.
+- Una revisión obsoleta devuelve `412 Precondition Failed`; un header ausente devuelve `428 Precondition Required` y un header inválido devuelve `400 Bad Request`.
+- El nuevo ETag se construye únicamente después de que la transacción confirme el CAS.
+- No se procesan passphrases, claves en claro ni material descifrado.
+
+La concurrencia de `SecureItem` sigue usando su revisión de item y ETags propios.
 
 ---
 
@@ -341,4 +345,3 @@ Todas las decisiones necesarias para implementar el slice `vault` quedan cerrada
 - Implementar use cases
 - Implementar crypto en cliente
 - Implementar infraestructura sin ambigüedad
-
