@@ -61,7 +61,8 @@ class VaultKeyMaterialTest {
             VaultKeyMaterial::getKdfOutputLen,
             VaultKeyMaterial::getCryptoVersion,
             VaultKeyMaterial::getCreatedAt,
-            VaultKeyMaterial::getUpdatedAt)
+            VaultKeyMaterial::getUpdatedAt,
+            VaultKeyMaterial::getMasterKeyRevision)
         .containsExactly(
             accountId,
             kekEncMaster,
@@ -74,7 +75,8 @@ class VaultKeyMaterialTest {
             kdfOutputLen,
             cryptoVersion,
             now,
-            now);
+            now,
+            1L);
   }
 
   @Test

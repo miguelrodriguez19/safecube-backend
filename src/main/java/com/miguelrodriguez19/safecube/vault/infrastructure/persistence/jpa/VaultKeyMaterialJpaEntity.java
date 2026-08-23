@@ -57,4 +57,7 @@ public class VaultKeyMaterialJpaEntity {
 
   @Column(nullable = false)
   private Instant updatedAt;
+
+  @Column(name = "master_key_revision", nullable = false)
+  private long masterKeyRevision;
 }

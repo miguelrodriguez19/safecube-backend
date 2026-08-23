@@ -34,6 +34,7 @@ public class VaultKeyMaterial {
   private final String cryptoVersion;
   private final Instant createdAt;
   private Instant updatedAt;
+  private long masterKeyRevision;
 
   private VaultKeyMaterial(
       final UUID accountId,
@@ -47,7 +48,8 @@ public class VaultKeyMaterial {
       final int kdfOutputLen,
       final String cryptoVersion,
       final Instant createdAt,
-      final Instant updatedAt) {
+      final Instant updatedAt,
+      final long masterKeyRevision) {
 
     this.accountId = accountId;
     this.kekEncMaster = kekEncMaster;
@@ -61,6 +63,7 @@ public class VaultKeyMaterial {
     this.cryptoVersion = cryptoVersion;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.masterKeyRevision = masterKeyRevision;
   }
 
   public static VaultKeyMaterial create(
@@ -92,7 +95,8 @@ public class VaultKeyMaterial {
         kdfOutputLen,
         cryptoVersion,
         createdAt,
-        createdAt);
+        createdAt,
+        1L);
   }
 
   public static VaultKeyMaterial restore(
@@ -107,7 +111,12 @@ public class VaultKeyMaterial {
       @Positive final int kdfOutputLen,
       @NotBlank final String cryptoVersion,
       @NotNull final Instant createdAt,
-      @NotNull final Instant updatedAt) {
+      @NotNull final Instant updatedAt,
+      @Positive final long masterKeyRevision) {
+
+    if (masterKeyRevision <= 0) {
+      throw new InvalidVaultKeyMaterialException("masterKeyRevision must be > 0");
+    }
 
     return new VaultKeyMaterial(
         accountId,
@@ -121,7 +130,8 @@ public class VaultKeyMaterial {
         kdfOutputLen,
         cryptoVersion,
         createdAt,
-        updatedAt);
+        updatedAt,
+        masterKeyRevision);
   }
 
   public void rotateMasterWrappedKek(
@@ -131,6 +141,11 @@ public class VaultKeyMaterial {
 
     this.kekEncMaster = newKekEncMaster;
     this.updatedAt = updatedAt;
+    this.masterKeyRevision = Math.incrementExact(this.masterKeyRevision);
+  }
+
+  public static void validateMasterWrappedKek(@NotNull final byte[] newKekEncMaster) {
+    validateKekEncMaster(newKekEncMaster);
   }
 
   private static void validateKekEncMaster(byte[] newKekEncMaster) {
