@@ -37,7 +37,7 @@ Feature: Rotate master wrapped KEK
     When method put
     Then status 200
     And match responseHeaders['ETag'][0] == '"master-2"'
-    And match responseHeaders['Cache-Control'][0] == 'no-store'
+    And match responseHeaders['Cache-Control'][0] == 'no-store, no-transform'
 
 
   Scenario: Get the rotated master wrapped KEK with its incremented ETag
