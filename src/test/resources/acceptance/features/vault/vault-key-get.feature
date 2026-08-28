@@ -21,7 +21,7 @@ Feature: Get vault key material
     When method get
     Then status 200
     And match responseHeaders['ETag'][0] == '"master-1"'
-    And match responseHeaders['Cache-Control'][0] == 'no-store'
+    And match responseHeaders['Cache-Control'][0] == 'no-store, no-transform'
     And match response ==
       """
       {

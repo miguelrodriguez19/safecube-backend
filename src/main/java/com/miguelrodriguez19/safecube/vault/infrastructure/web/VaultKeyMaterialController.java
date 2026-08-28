@@ -107,9 +107,10 @@ public class VaultKeyMaterialController {
             schema = @Schema(type = "string", example = "\"master-1\"")),
         @Header(
             name = "Cache-Control",
-            description = "Responses containing vault key material must not be cached.",
+            description =
+                "Responses containing vault key material must not be cached or transformed by intermediaries.",
             required = true,
-            schema = @Schema(type = "string", example = "no-store"))
+            schema = @Schema(type = "string", example = "no-store, no-transform"))
       })
   @GetMapping
   public ResponseEntity<VaultKeyMaterialResponse> get(
@@ -122,7 +123,7 @@ public class VaultKeyMaterialController {
         final var vaultKeyMaterial = s.success().orElseThrow();
         yield ResponseEntity.ok()
             .eTag(formatMasterEtag(vaultKeyMaterial.masterKeyRevision()))
-            .cacheControl(CacheControl.noStore())
+            .cacheControl(CacheControl.noStore().noTransform())
             .body(
                 new VaultKeyMaterialResponse(
                     vaultKeyMaterial.accountId(),
@@ -161,9 +162,10 @@ public class VaultKeyMaterialController {
               schema = @Schema(type = "string", example = "\"master-2\"")),
           @Header(
               name = "Cache-Control",
-              description = "Responses containing vault key material must not be cached.",
+              description =
+                  "Responses containing vault key material must not be cached or transformed by intermediaries.",
               required = true,
-              schema = @Schema(type = "string", example = "no-store"))
+              schema = @Schema(type = "string", example = "no-store, no-transform"))
         }),
     @ApiResponse(responseCode = "412", description = "The If-Match revision is stale."),
     @ApiResponse(responseCode = "428", description = "If-Match is required.")
@@ -201,7 +203,7 @@ public class VaultKeyMaterialController {
       case Result.Success<UpdateMasterWrappedKekResult, VaultKeyMaterialError> s ->
           ResponseEntity.ok()
               .eTag(formatMasterEtag(s.success().orElseThrow().masterKeyRevision()))
-              .cacheControl(CacheControl.noStore())
+              .cacheControl(CacheControl.noStore().noTransform())
               .build();
 
       case Result.Failure<UpdateMasterWrappedKekResult, VaultKeyMaterialError> f ->
